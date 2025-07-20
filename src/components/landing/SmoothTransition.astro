@@ -1,0 +1,49 @@
+---
+import { getLangFromUrl, useTranslations, useTranslatedPath } from "@i18n/utils";
+
+const { class: className } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const translatePath = useTranslatedPath(lang);
+---
+
+<!-- Smooth transition section -->
+<section id="smooth-transition" class:list={["section home-dark-section transition-section relative", className]}>
+	<div class="wrapper col-span-12 h-screen w-full">
+		<!-- This is a hidden section that just provides smooth scrolling transition -->
+	</div>
+</section>
+
+<script>
+	import { gsap } from "gsap";
+	import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	function init() {
+		// Create a smooth scroll pinning effect
+		const pinner = gsap.timeline({
+			scrollTrigger: {
+				trigger: ".transition-section .wrapper",
+				start: "top top",
+				end: "+=100%",
+				scrub: 0.5,
+				pin: true,
+				pinSpacing: true,
+				markers: false,
+				id: "smooth-transition",
+			},
+		});
+	}
+
+	document.removeEventListener("DOMContentLoaded", init);
+	document.addEventListener("DOMContentLoaded", init);
+</script>
+
+<style>
+	.transition-section {
+		min-height: 20vh; /* Minimal height */
+		background-color: #1a1a1a; /* Dark background to match with surrounding sections */
+	}
+</style>

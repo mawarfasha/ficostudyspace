@@ -1,0 +1,458 @@
+---
+import Title from "@components/global/Title.astro";
+import { getLangFromUrl, useTranslations } from "@i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section>
+	<div class="top-[-10rem]transform-gpu absolute inset-x-0 overflow-hidden blur-3xl sm:top-[-20rem]" aria-hidden="true">
+		<div class="gradient-element"></div>
+	</div>
+	<div class="mx-auto flex flex-col gap-16 px-8 py-12 md:px-12 lg:pt-16 2xl:max-w-7xl">
+		<!-- svg: first layer -->
+		<svg class="hidden" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg">
+			<filter id="article-noise-filter">
+				<feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"></feTurbulence>
+			</filter>
+		</svg>
+		
+		<Title title="Focus Mode" subtitle="Your Digital Study Desk" class="pb-6 pt-8 uppercase" />
+		
+		<!-- Main Content Area -->
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-[600px]">
+			<!-- Focus Monitor & Notes - Left Side (2/3 width) -->
+			<div class="lg:col-span-2 space-y-6">
+				<!-- Large Camera Feed Section -->
+				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+					<h3 class="text-2xl font-semibold mb-6 text-black text-center">Focus Monitor</h3>
+					
+					<!-- Camera Display - Much Larger -->
+					<div class="relative bg-black/50 rounded-lg overflow-hidden mb-6 aspect-video h-96">
+						<video id="cameraFeed" autoplay muted class="w-full h-full object-cover"></video>
+						<div id="cameraPlaceholder" class="absolute inset-0 flex items-center justify-center text-white/60">
+							<div class="text-center">
+								<svg class="w-24 h-24 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+									<path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586l-.707-.707A1 1 0 0013 4H7a1 1 0 00-.707.293L5.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+								</svg>
+								<p class="text-lg">Camera Disabled</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Camera Controls -->
+                     
+					<div class="grid grid-cols-2 gap-4 mb-4">
+						<button id="toggleCamera" class="squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-3 px-6 text-lg font-medium">
+							Enable Camera
+						</button>
+						<button id="recordBtn" class="squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-3 px-6 text-lg font-medium" disabled>
+							Record
+						</button>
+					</div>
+					
+					<p class="text-sm text-black/50 text-center">Monitor your focus and posture during study sessions</p>
+				</div>
+
+				<!-- Session Notes -->
+				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+					<h3 class="text-xl font-semibold mb-4 text-black">Session Notes</h3>
+					<textarea 
+						placeholder="Take notes during your focus session..."
+						class="w-full h-64 bg-white border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+					></textarea>
+					<div class="mt-4 flex justify-between items-center">
+						<span class="text-sm text-black/60" id="charCount">0 characters</span>
+						<button class="squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white px-4 py-2">
+							Save Notes
+						</button>
+					</div>
+				</div>
+
+				<!-- Study Session Info -->
+				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+					<h3 class="text-xl font-semibold mb-4 text-black">Current Session</h3>
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label class="block text-sm font-medium text-black/80 mb-2">Session Type</label>
+							<select class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500">
+								<option value="study">Study Session</option>
+								<option value="work">Work Session</option>
+								<option value="creative">Creative Work</option>
+								<option value="reading">Reading</option>
+							</select>
+						</div>
+						<div>
+							<label class="block text-sm font-medium text-black/80 mb-2">Session Goal</label>
+							<input type="text" placeholder="e.g., Complete Chapter 3" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Right Sidebar - Timer & Controls (1/3 width) -->
+			<div class="space-y-6">
+				<!-- Timer Section -->
+				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+					<h3 class="text-xl font-semibold mb-4 text-black text-center">Focus Timer</h3>
+					
+					<!-- Timer Display -->
+					<div class="text-center mb-6">
+						<div class="text-4xl font-mono font-bold text-black mb-2" id="timerDisplay">25:00</div>
+						<div class="text-sm text-black/60" id="timerStatus">Ready to start</div>
+					</div>
+
+					<!-- Timer Presets -->
+					<div class="grid grid-cols-3 gap-2 mb-4">
+						<button class="preset-btn squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-2 text-sm" data-minutes="25">
+							25m
+						</button>
+						<button class="preset-btn squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-2 text-sm" data-minutes="45">
+							45m
+						</button>
+						<button class="preset-btn squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-2 text-sm" data-minutes="60">
+							60m
+						</button>
+					</div>
+
+					<!-- Timer Controls -->
+					<div class="space-y-2">
+						<button id="startBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+							Start
+						</button>
+						<button id="pauseBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4" disabled>
+							Pause
+						</button>
+						<button id="resetBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+							Reset
+						</button>
+					</div>
+				</div>
+
+				<!-- Session Stats -->
+				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+					<h3 class="text-xl font-semibold mb-4 text-black">Today's Progress</h3>
+					<div class="space-y-4">
+						<div class="text-center">
+							<div class="text-2xl font-bold text-blue-600" id="sessionsCompleted">0</div>
+							<div class="text-sm text-black/60">Sessions Completed</div>
+						</div>
+						<div class="text-center">
+							<div class="text-2xl font-bold text-green-600" id="totalFocusTime">0m</div>
+							<div class="text-sm text-black/60">Focus Time</div>
+						</div>
+						<div class="text-center">
+							<div class="text-2xl font-bold text-purple-600" id="currentStreak">0</div>
+							<div class="text-sm text-black/60">Day Streak</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Quick Actions -->
+				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+					<h3 class="text-xl font-semibold mb-4 text-black text-center">Quick Actions</h3>
+					<div class="space-y-2">
+						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+							Break Time
+						</button>
+						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+							Background Sounds
+						</button>
+						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+							Do Not Disturb
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.gradient-element {
+		@apply relative left-1/2 -z-10 aspect-[1155/678] w-[36.125rem] max-w-none -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#a2d4a0] to-[#aac887] opacity-30 sm:left-[calc(50%-40rem)] sm:w-[72.1875rem];
+		clip-path: polygon(
+			74.1% 44.1%,
+			100% 61.6%,
+			97.5% 26.9%,
+			85.5% 0.1%,
+			80.7% 2%,
+			72.5% 32.5%,
+			60.2% 62.4%,
+			52.4% 68.1%,
+			47.5% 58.3%,
+			45.2% 34.5%,
+			27.5% 76.7%,
+			0.1% 64.9%,
+			17.9% 100%,
+			27.6% 76.8%,
+			76.1% 97.7%,
+			74.1% 44.1%
+		);
+	}
+</style>
+
+<script>
+	class FocusDesk {
+		private timer: number | null = null;
+		private timeRemaining: number = 25 * 60; // 25 minutes in seconds
+		private isRunning: boolean = false;
+		private cameraStream: MediaStream | null = null;
+		private isRecording: boolean = false;
+
+		constructor() {
+			this.initializeElements();
+			this.setupEventListeners();
+			this.loadStats();
+		}
+
+		private initializeElements() {
+			this.updateTimerDisplay();
+		}
+
+		private setupEventListeners() {
+			// Timer controls
+			document.getElementById('startBtn')?.addEventListener('click', () => this.startTimer());
+			document.getElementById('pauseBtn')?.addEventListener('click', () => this.pauseTimer());
+			document.getElementById('resetBtn')?.addEventListener('click', () => this.resetTimer());
+
+			// Timer presets
+			document.querySelectorAll('.preset-btn').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const minutes = parseInt((e.target as HTMLElement).dataset.minutes || '25');
+					this.setTimer(minutes);
+				});
+			});
+
+			// Camera controls
+			document.getElementById('toggleCamera')?.addEventListener('click', () => this.toggleCamera());
+			document.getElementById('recordBtn')?.addEventListener('click', () => this.toggleRecording());
+
+			// Notes character count
+			const notesTextarea = document.querySelector('textarea');
+			notesTextarea?.addEventListener('input', () => {
+				const charCount = document.getElementById('charCount');
+				if (charCount) {
+					charCount.textContent = `${notesTextarea.value.length} characters`;
+				}
+			});
+		}
+
+		private setTimer(minutes: number) {
+			this.timeRemaining = minutes * 60;
+			this.updateTimerDisplay();
+			if (this.isRunning) {
+				this.pauseTimer();
+			}
+		}
+
+		private startTimer() {
+			if (!this.isRunning) {
+				this.isRunning = true;
+				this.timer = window.setInterval(() => {
+					this.timeRemaining--;
+					this.updateTimerDisplay();
+					
+					if (this.timeRemaining <= 0) {
+						this.completeSession();
+					}
+				}, 1000);
+
+				this.updateControls();
+				this.updateTimerStatus('Focus time! Stay concentrated.');
+			}
+		}
+
+		private pauseTimer() {
+			if (this.isRunning && this.timer) {
+				this.isRunning = false;
+				clearInterval(this.timer);
+				this.timer = null;
+				this.updateControls();
+				this.updateTimerStatus('Timer paused');
+			}
+		}
+
+		private resetTimer() {
+			if (this.timer) {
+				clearInterval(this.timer);
+				this.timer = null;
+			}
+			this.isRunning = false;
+			this.timeRemaining = 25 * 60;
+			this.updateTimerDisplay();
+			this.updateControls();
+			this.updateTimerStatus('Ready to start');
+		}
+
+		private completeSession() {
+			if (this.timer) {
+				clearInterval(this.timer);
+				this.timer = null;
+			}
+			this.isRunning = false;
+			this.updateControls();
+			this.updateTimerStatus('Session completed! Great work!');
+			this.incrementStats();
+			
+			// Show completion notification
+			if (Notification.permission === 'granted') {
+				new Notification('Focus Session Complete!', {
+					body: 'Great job! You completed your focus session.',
+					icon: '/favicon.ico'
+				});
+			}
+		}
+
+		private updateTimerDisplay() {
+			const minutes = Math.floor(this.timeRemaining / 60);
+			const seconds = this.timeRemaining % 60;
+			const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+			
+			const timerDisplay = document.getElementById('timerDisplay');
+			if (timerDisplay) {
+				timerDisplay.textContent = display;
+			}
+		}
+
+		private updateTimerStatus(status: string) {
+			const statusElement = document.getElementById('timerStatus');
+			if (statusElement) {
+				statusElement.textContent = status;
+			}
+		}
+
+		private updateControls() {
+			const startBtn = document.getElementById('startBtn') as HTMLButtonElement;
+			const pauseBtn = document.getElementById('pauseBtn') as HTMLButtonElement;
+			
+			if (startBtn && pauseBtn) {
+				startBtn.disabled = this.isRunning;
+				pauseBtn.disabled = !this.isRunning;
+			}
+		}
+
+		private async toggleCamera() {
+			const video = document.getElementById('cameraFeed') as HTMLVideoElement;
+			const placeholder = document.getElementById('cameraPlaceholder');
+			const toggleBtn = document.getElementById('toggleCamera');
+
+			if (!this.cameraStream) {
+				try {
+					this.cameraStream = await navigator.mediaDevices.getUserMedia({ 
+						video: { width: 640, height: 480 },
+						audio: false 
+					});
+					
+					if (video) {
+						video.srcObject = this.cameraStream;
+						video.style.display = 'block';
+					}
+					if (placeholder) {
+						placeholder.style.display = 'none';
+					}
+					if (toggleBtn) {
+						toggleBtn.textContent = 'Disable Camera';
+					}
+					
+					const recordBtn = document.getElementById('recordBtn') as HTMLButtonElement;
+					if (recordBtn) {
+						recordBtn.disabled = false;
+					}
+				} catch (error) {
+					console.error('Error accessing camera:', error);
+					alert('Could not access camera. Please check permissions.');
+				}
+			} else {
+				this.cameraStream.getTracks().forEach(track => track.stop());
+				this.cameraStream = null;
+				
+				if (video) {
+					video.style.display = 'none';
+				}
+				if (placeholder) {
+					placeholder.style.display = 'flex';
+				}
+				if (toggleBtn) {
+					toggleBtn.textContent = 'Enable Camera';
+				}
+				
+				const recordBtn = document.getElementById('recordBtn') as HTMLButtonElement;
+				if (recordBtn) {
+					recordBtn.disabled = true;
+					recordBtn.textContent = 'Record';
+				}
+				
+				this.isRecording = false;
+			}
+		}
+
+		private toggleRecording() {
+			const recordBtn = document.getElementById('recordBtn');
+			
+			if (!this.isRecording) {
+				this.isRecording = true;
+				if (recordBtn) {
+					recordBtn.textContent = 'Stop Recording';
+					recordBtn.className = recordBtn.className.replace('bg-red-600', 'bg-gray-600');
+				}
+				// Here you would implement actual recording functionality
+				console.log('Recording started');
+			} else {
+				this.isRecording = false;
+				if (recordBtn) {
+					recordBtn.textContent = 'Record';
+					recordBtn.className = recordBtn.className.replace('bg-gray-600', 'bg-red-600');
+				}
+				console.log('Recording stopped');
+			}
+		}
+
+		private loadStats() {
+			// Load stats from localStorage or set defaults
+			const stats = {
+				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0'),
+				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0'),
+				currentStreak: parseInt(localStorage.getItem('focusDesk_currentStreak') || '0')
+			};
+
+			this.updateStatsDisplay(stats);
+		}
+
+		private incrementStats() {
+			const currentStats = {
+				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0') + 1,
+				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0') + 25,
+				currentStreak: parseInt(localStorage.getItem('focusDesk_currentStreak') || '0') + 1
+			};
+
+			// Save to localStorage
+			localStorage.setItem('focusDesk_sessionsCompleted', currentStats.sessionsCompleted.toString());
+			localStorage.setItem('focusDesk_totalFocusTime', currentStats.totalFocusTime.toString());
+			localStorage.setItem('focusDesk_currentStreak', currentStats.currentStreak.toString());
+
+			this.updateStatsDisplay(currentStats);
+		}
+
+		private updateStatsDisplay(stats: any) {
+			const sessionsElement = document.getElementById('sessionsCompleted');
+			const focusTimeElement = document.getElementById('totalFocusTime');
+			const streakElement = document.getElementById('currentStreak');
+
+			if (sessionsElement) sessionsElement.textContent = stats.sessionsCompleted.toString();
+			if (focusTimeElement) focusTimeElement.textContent = `${stats.totalFocusTime}m`;
+			if (streakElement) streakElement.textContent = stats.currentStreak.toString();
+		}
+	}
+
+	// Initialize when DOM is loaded
+	document.addEventListener('DOMContentLoaded', () => {
+		new FocusDesk();
+		
+		// Request notification permission
+		if ('Notification' in window && Notification.permission === 'default') {
+			Notification.requestPermission();
+		}
+	});
+</script>

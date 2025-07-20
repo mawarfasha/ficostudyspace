@@ -1,0 +1,17 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import FocusDeskComponent from "@components/blog/FocusDesk.astro";
+import { getLangFromUrl, useTranslations } from "@i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<BaseLayout seo={{
+    title: "Focus Desk | Study with Concentration",
+    description: "A digital study desk to enhance your focus and productivity"
+}}>
+    <main>
+        <FocusDeskComponent />
+    </main>
+</BaseLayout>
