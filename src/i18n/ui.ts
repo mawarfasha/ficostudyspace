@@ -24,7 +24,7 @@ export const ui = {
 		"hero.title.3": "do this shit",
 		"hero.title.4": "LOCK IN!",
 		"hero.subtitle":
-			"Ashav, my pretty, angelic, cutesy, gorgeous, beautiful, stunning, lovely, darling, sweet, adorable, precious, charming, enchanting, mesmerizing, irresistible, elegant, graceful, classy, chic, stylish, girl!\n Let's study my love!",
+			"Ashav, my pretty, angelic, cutesy, gorgeous, beautiful, stunning, lovely, darling, sweet, adorable, precious, charming, enchanting, mesmerizing, irresistible, graceful, classy, chic, stylish, girl! Let's study my love!",
 		"hero.scroll": "scroll down to explore more",
 		"websites.title": "Websites",
 		"apps.title": "Apps",
