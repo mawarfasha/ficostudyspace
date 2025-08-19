@@ -18,7 +18,7 @@ const t = useTranslations(lang);
 			</filter>
 		</svg>
 		
-		<Title title="Focus Modez" subtitle="Your Digital Study Desk" class="pb-6 pt-8 uppercase" />
+		<Title title="Focus Mode" subtitle="Your Digital Study Desk" class="pb-6 pt-8 uppercase" />
 		
 		<!-- Main Content Area -->
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-[600px]">
@@ -49,6 +49,16 @@ const t = useTranslations(lang);
 						</button>
 						<button id="recordBtn" class="squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-3 px-6 text-lg font-medium" disabled>
 							Record
+						</button>
+					</div>
+					
+					<!-- Timelapse Controls -->
+					<div class="grid grid-cols-2 gap-4 mb-4">
+						<button id="startTimelapse" class="squircle-bg rounded-lg bg-green-600 text-white transition-all hover:bg-green-700 py-3 px-6 text-lg font-medium" disabled>
+							Start Timelapse
+						</button>
+						<button id="stopTimelapse" class="squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-red-700 py-3 px-6 text-lg font-medium" disabled>
+							Stop & Save
 						</button>
 					</div>
 					
@@ -193,6 +203,7 @@ const t = useTranslations(lang);
 	}
 </style>
 
+<script src="https://cdn.jsdelivr.net/gh/antimatter15/whammy/whammy.js"></script>
 <script>
 	class FocusDesk {
 		private timer: number | null = null;
@@ -200,6 +211,9 @@ const t = useTranslations(lang);
 		private isRunning: boolean = false;
 		private cameraStream: MediaStream | null = null;
 		private isRecording: boolean = false;
+		private timelapseFrames: string[] = [];
+		private timelapseInterval: number | null = null;
+		private isTimelapseRecording: boolean = false;
 
 		constructor() {
 			this.initializeElements();
@@ -228,6 +242,10 @@ const t = useTranslations(lang);
 			// Camera controls
 			document.getElementById('toggleCamera')?.addEventListener('click', () => this.toggleCamera());
 			document.getElementById('recordBtn')?.addEventListener('click', () => this.toggleRecording());
+
+			// Timelapse controls
+			document.getElementById('startTimelapse')?.addEventListener('click', () => this.startTimelapse());
+			document.getElementById('stopTimelapse')?.addEventListener('click', () => this.stopTimelapse());
 
 			// Notes character count
 			const notesTextarea = document.querySelector('textarea');
@@ -357,8 +375,14 @@ const t = useTranslations(lang);
 					}
 					
 					const recordBtn = document.getElementById('recordBtn') as HTMLButtonElement;
+					const startTimelapseBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
+					const stopTimelapseBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
+					
 					if (recordBtn) {
 						recordBtn.disabled = false;
+					}
+					if (startTimelapseBtn) {
+						startTimelapseBtn.disabled = false;
 					}
 				} catch (error) {
 					console.error('Error accessing camera:', error);
@@ -379,9 +403,23 @@ const t = useTranslations(lang);
 				}
 				
 				const recordBtn = document.getElementById('recordBtn') as HTMLButtonElement;
+				const startTimelapseBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
+				const stopTimelapseBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
+				
 				if (recordBtn) {
 					recordBtn.disabled = true;
 					recordBtn.textContent = 'Record';
+				}
+				if (startTimelapseBtn) {
+					startTimelapseBtn.disabled = true;
+				}
+				if (stopTimelapseBtn) {
+					stopTimelapseBtn.disabled = true;
+				}
+				
+				// Stop any ongoing timelapse
+				if (this.isTimelapseRecording) {
+					this.stopTimelapse();
 				}
 				
 				this.isRecording = false;
@@ -407,6 +445,101 @@ const t = useTranslations(lang);
 				}
 				console.log('Recording stopped');
 			}
+		}
+
+		private async startTimelapse() {
+			if (!this.cameraStream) {
+				alert('Please enable camera first');
+				return;
+			}
+
+			const video = document.getElementById('cameraFeed') as HTMLVideoElement;
+			if (!video) return;
+
+			this.timelapseFrames = [];
+			this.isTimelapseRecording = true;
+
+			// Update button states
+			const startBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
+			const stopBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
+			
+			if (startBtn) {
+				startBtn.disabled = true;
+				startBtn.textContent = 'Recording...';
+			}
+			if (stopBtn) {
+				stopBtn.disabled = false;
+			}
+
+			// Create canvas for capturing frames
+			const canvas = document.createElement('canvas');
+			const ctx = canvas.getContext('2d');
+
+			if (!ctx) return;
+
+			// Capture frame every 1 second
+			this.timelapseInterval = setInterval(() => {
+				if (!this.isTimelapseRecording) return;
+				
+				canvas.width = video.videoWidth;
+				canvas.height = video.videoHeight;
+				ctx.drawImage(video, 0, 0);
+				this.timelapseFrames.push(canvas.toDataURL("image/webp", 0.8));
+			}, 1000) as any;
+
+			console.log('Timelapse recording started');
+		}
+
+		private stopTimelapse() {
+			if (!this.isTimelapseRecording) return;
+
+			this.isTimelapseRecording = false;
+			
+			if (this.timelapseInterval) {
+				clearInterval(this.timelapseInterval);
+				this.timelapseInterval = null;
+			}
+
+			// Update button states
+			const startBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
+			const stopBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
+			
+			if (startBtn) {
+				startBtn.disabled = false;
+				startBtn.textContent = 'Start Timelapse';
+			}
+			if (stopBtn) {
+				stopBtn.disabled = true;
+			}
+
+			// Create timelapse video using Whammy
+			if (this.timelapseFrames.length > 0) {
+				try {
+					// @ts-ignore - Whammy is loaded from CDN
+					const encoder = new Whammy.Video(15); // 15fps timelapse
+					this.timelapseFrames.forEach(frame => encoder.add(frame));
+					const output = encoder.compile();
+					
+					// Download the video
+					const url = URL.createObjectURL(output);
+					const a = document.createElement('a');
+					a.href = url;
+					a.download = `timelapse-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.webm`;
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+					URL.revokeObjectURL(url);
+					
+					console.log(`Timelapse saved with ${this.timelapseFrames.length} frames`);
+				} catch (error) {
+					console.error('Error creating timelapse:', error);
+					alert('Error creating timelapse video');
+				}
+			} else {
+				alert('No frames captured for timelapse');
+			}
+
+			this.timelapseFrames = [];
 		}
 
 		private loadStats() {
