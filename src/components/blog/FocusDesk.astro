@@ -35,11 +35,7 @@ const t = useTranslations(lang);
 					
 					<!-- Camera Display - Much Larger -->
 					<div class="relative bg-black/50 rounded-lg overflow-hidden mb-6 aspect-video h-96">
-<<<<<<< HEAD
 						<video id="cameraFeed" autoplay muted class="w-full h-full object-cover camera-mirrored"></video>
-=======
-						<video id="cameraFeed" autoplay muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
->>>>>>> 40d63d2553d65343043f1e86020463a9fd61cf08
 						<div id="cameraPlaceholder" class="absolute inset-0 flex items-center justify-center text-white/60">
 							<div class="text-center">
 								<svg class="w-24 h-24 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
@@ -570,7 +566,6 @@ const t = useTranslations(lang);
 		captureFrame() {
 			if (!this.isRecording || !this.ctx || !this.video) return;
 
-<<<<<<< HEAD
 			// Save the context state
 			this.ctx.save();
 			
@@ -579,12 +574,6 @@ const t = useTranslations(lang);
 			this.ctx.drawImage(this.video, -this.canvas.width, 0, this.canvas.width, this.canvas.height);
 			
 			// Restore the context state
-=======
-			// Flip the canvas horizontally to match the displayed video
-			this.ctx.save();
-			this.ctx.scale(-1, 1);
-			this.ctx.drawImage(this.video, -this.canvas.width, 0, this.canvas.width, this.canvas.height);
->>>>>>> 40d63d2553d65343043f1e86020463a9fd61cf08
 			this.ctx.restore();
 			
 			const frameData = this.canvas.toDataURL('image/jpeg', 0.8);
