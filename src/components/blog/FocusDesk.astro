@@ -203,7 +203,7 @@ const t = useTranslations(lang);
 	}
 </style>
 
-<script src="https://cdn.jsdelivr.net/gh/antimatter15/whammy/whammy.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/whammy@0.0.1/whammy.min.js"></script>
 <script>
 	class FocusDesk {
 		private timer: number | null = null;
@@ -219,6 +219,18 @@ const t = useTranslations(lang);
 			this.initializeElements();
 			this.setupEventListeners();
 			this.loadStats();
+			this.checkWhammyAvailability();
+		}
+
+		private checkWhammyAvailability() {
+			// Check if Whammy.js is loaded
+			setTimeout(() => {
+				if (typeof (window as any).Whammy === 'undefined') {
+					console.warn('Whammy.js not loaded - timelapse will use fallback method');
+				} else {
+					console.log('Whammy.js loaded successfully');
+				}
+			}, 1000);
 		}
 
 		private initializeElements() {
@@ -454,7 +466,10 @@ const t = useTranslations(lang);
 			}
 
 			const video = document.getElementById('cameraFeed') as HTMLVideoElement;
-			if (!video) return;
+			if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+				alert('Camera not ready. Please wait for camera to initialize.');
+				return;
+			}
 
 			this.timelapseFrames = [];
 			this.isTimelapseRecording = true;
@@ -475,16 +490,38 @@ const t = useTranslations(lang);
 			const canvas = document.createElement('canvas');
 			const ctx = canvas.getContext('2d');
 
-			if (!ctx) return;
+			if (!ctx) {
+				alert('Canvas not supported');
+				return;
+			}
+
+			// Set canvas dimensions
+			canvas.width = video.videoWidth;
+			canvas.height = video.videoHeight;
+
+			console.log(`Starting timelapse recording at ${canvas.width}x${canvas.height}`);
 
 			// Capture frame every 1 second
 			this.timelapseInterval = setInterval(() => {
 				if (!this.isTimelapseRecording) return;
 				
-				canvas.width = video.videoWidth;
-				canvas.height = video.videoHeight;
-				ctx.drawImage(video, 0, 0);
-				this.timelapseFrames.push(canvas.toDataURL("image/webp", 0.8));
+				try {
+					// Ensure canvas dimensions match video
+					if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+						canvas.width = video.videoWidth;
+						canvas.height = video.videoHeight;
+					}
+					
+					ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+					
+					// Convert to base64 image data - using JPEG for better compatibility
+					const frameData = canvas.toDataURL("image/jpeg", 0.8);
+					this.timelapseFrames.push(frameData);
+					
+					console.log(`Captured frame ${this.timelapseFrames.length}`);
+				} catch (error) {
+					console.error('Error capturing frame:', error);
+				}
 			}, 1000) as any;
 
 			console.log('Timelapse recording started');
@@ -512,34 +549,132 @@ const t = useTranslations(lang);
 				stopBtn.disabled = true;
 			}
 
-			// Create timelapse video using Whammy
+			console.log(`Stopping timelapse with ${this.timelapseFrames.length} frames`);
+
+			// Create timelapse video
 			if (this.timelapseFrames.length > 0) {
-				try {
-					// @ts-ignore - Whammy is loaded from CDN
-					const encoder = new Whammy.Video(15); // 15fps timelapse
-					this.timelapseFrames.forEach(frame => encoder.add(frame));
-					const output = encoder.compile();
-					
-					// Download the video
-					const url = URL.createObjectURL(output);
-					const a = document.createElement('a');
-					a.href = url;
-					a.download = `timelapse-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.webm`;
-					document.body.appendChild(a);
-					a.click();
-					document.body.removeChild(a);
-					URL.revokeObjectURL(url);
-					
-					console.log(`Timelapse saved with ${this.timelapseFrames.length} frames`);
-				} catch (error) {
-					console.error('Error creating timelapse:', error);
-					alert('Error creating timelapse video');
-				}
+				this.createTimelapseVideo();
 			} else {
 				alert('No frames captured for timelapse');
 			}
 
 			this.timelapseFrames = [];
+		}
+
+		private async createTimelapseVideo() {
+			try {
+				// Check if Whammy is available
+				if (typeof (window as any).Whammy === 'undefined') {
+					console.error('Whammy.js not loaded');
+					this.createTimelapseWithMediaRecorder();
+					return;
+				}
+
+				console.log('Creating timelapse with Whammy.js...');
+				
+				// Create video encoder
+				const encoder = new (window as any).Whammy.Video(10); // 10fps for smoother playback
+				
+				// Add frames to encoder
+				for (let i = 0; i < this.timelapseFrames.length; i++) {
+					try {
+						encoder.add(this.timelapseFrames[i]);
+					} catch (frameError) {
+						console.error(`Error adding frame ${i}:`, frameError);
+					}
+				}
+				
+				// Compile video
+				const output = encoder.compile();
+				
+				if (!output || output.size === 0) {
+					throw new Error('Video compilation failed - output is empty');
+				}
+				
+				// Download the video
+				const url = URL.createObjectURL(output);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = `timelapse-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.webm`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				
+				// Clean up
+				setTimeout(() => URL.revokeObjectURL(url), 1000);
+				
+				console.log(`Timelapse saved successfully with ${this.timelapseFrames.length} frames`);
+				alert(`Timelapse created successfully! ${this.timelapseFrames.length} frames compiled.`);
+				
+			} catch (error) {
+				console.error('Error creating timelapse with Whammy:', error);
+				console.log('Falling back to alternative method...');
+				this.createTimelapseWithMediaRecorder();
+			}
+		}
+
+		private createTimelapseWithMediaRecorder() {
+			try {
+				console.log('Creating timelapse using fallback method...');
+				
+				// Create a simple slideshow as fallback
+				const canvas = document.createElement('canvas');
+				const ctx = canvas.getContext('2d');
+				
+				if (!ctx || this.timelapseFrames.length === 0) {
+					alert('Unable to create timelapse - no frames or canvas not supported');
+					return;
+				}
+
+				// Set canvas size based on first frame
+				const firstImage = new Image();
+				firstImage.onload = () => {
+					canvas.width = firstImage.width;
+					canvas.height = firstImage.height;
+
+					// Create a simple GIF-like sequence by rapidly cycling through frames
+					let frameIndex = 0;
+					const frameDuration = 200; // 200ms per frame = 5fps
+
+					const drawFrame = () => {
+						const img = new Image();
+						img.onload = () => {
+							ctx.clearRect(0, 0, canvas.width, canvas.height);
+							ctx.drawImage(img, 0, 0);
+							
+							frameIndex++;
+							if (frameIndex < this.timelapseFrames.length) {
+								setTimeout(drawFrame, frameDuration);
+							} else {
+								// Export final canvas as image
+								canvas.toBlob((blob) => {
+									if (blob) {
+										const url = URL.createObjectURL(blob);
+										const a = document.createElement('a');
+										a.href = url;
+										a.download = `timelapse-final-frame-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+										document.body.appendChild(a);
+										a.click();
+										document.body.removeChild(a);
+										URL.revokeObjectURL(url);
+										
+										alert(`Timelapse frames captured! Final frame saved. ${this.timelapseFrames.length} frames were recorded.`);
+									}
+								}, 'image/png');
+							}
+						};
+						img.src = this.timelapseFrames[frameIndex];
+					};
+
+					drawFrame();
+				};
+				firstImage.src = this.timelapseFrames[0];
+
+			} catch (error) {
+				console.error('Fallback method also failed:', error);
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+				alert(`Unable to create timelapse video. Error: ${errorMessage}`);
+			}
 		}
 
 		private loadStats() {
