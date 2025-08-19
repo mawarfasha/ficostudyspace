@@ -30,7 +30,7 @@ const t = useTranslations(lang);
 					
 					<!-- Camera Display - Much Larger -->
 					<div class="relative bg-black/50 rounded-lg overflow-hidden mb-6 aspect-video h-96">
-						<video id="cameraFeed" autoplay muted class="w-full h-full object-cover"></video>
+						<video id="cameraFeed" autoplay muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
 						<div id="cameraPlaceholder" class="absolute inset-0 flex items-center justify-center text-white/60">
 							<div class="text-center">
 								<svg class="w-24 h-24 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
@@ -431,7 +431,12 @@ const t = useTranslations(lang);
 		captureFrame() {
 			if (!this.isRecording || !this.ctx || !this.video) return;
 
-			this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+			// Flip the canvas horizontally to match the displayed video
+			this.ctx.save();
+			this.ctx.scale(-1, 1);
+			this.ctx.drawImage(this.video, -this.canvas.width, 0, this.canvas.width, this.canvas.height);
+			this.ctx.restore();
+			
 			const frameData = this.canvas.toDataURL('image/jpeg', 0.8);
 			this.frames.push(frameData);
 			
