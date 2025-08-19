@@ -53,14 +53,37 @@ const t = useTranslations(lang);
 					</div>
 					
 					<!-- Timelapse Controls -->
+					<div class="space-y-4 mb-4">
+						<div>
+							<label class="block text-sm font-medium text-black/80 mb-2">Capture Interval</label>
+							<div class="flex items-center gap-3">
+								<input type="range" id="intervalSlider" min="100" max="5000" value="1000" 
+									class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+								<span id="intervalValue" class="text-sm font-medium text-black min-w-[60px]">1.0s</span>
+							</div>
+						</div>
+						<div>
+							<label class="block text-sm font-medium text-black/80 mb-2">Playback Speed</label>
+							<div class="flex items-center gap-3">
+								<input type="range" id="speedSlider" min="5" max="60" value="30" 
+									class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+								<span id="speedValue" class="text-sm font-medium text-black min-w-[60px]">30 FPS</span>
+							</div>
+						</div>
+					</div>
+					
 					<div class="grid grid-cols-2 gap-4 mb-4">
 						<button id="startTimelapse" class="squircle-bg rounded-lg bg-green-600 text-white transition-all hover:bg-green-700 py-3 px-6 text-lg font-medium" disabled>
-							Start Timelapse
+							▶️ Start Timelapse
 						</button>
 						<button id="stopTimelapse" class="squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-red-700 py-3 px-6 text-lg font-medium" disabled>
-							Stop & Save
+							⏹️ Stop Timelapse
 						</button>
 					</div>
+					
+					<button id="downloadTimelapse" class="w-full squircle-bg rounded-lg bg-blue-600 text-white transition-all hover:bg-blue-700 py-3 px-6 text-lg font-medium mb-4" disabled>
+						💾 Download Latest
+					</button>
 					
 					<p class="text-sm text-black/50 text-center">Monitor your focus and posture during study sessions</p>
 				</div>
@@ -176,6 +199,18 @@ const t = useTranslations(lang);
 				</div>
 			</div>
 		</div>
+		
+		<!-- Recordings Section -->
+		<div class="mt-8">
+			<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+				<h3 class="text-xl font-semibold mb-4 text-black text-center">📹 Recent Time-lapses</h3>
+				<div id="recordingsList" class="space-y-4">
+					<p class="text-center text-black/60 py-8">
+						No recordings yet. Start your first time-lapse above! 🎥
+					</p>
+				</div>
+			</div>
+		</div>
 	</div>
 </section>
 
@@ -214,8 +249,17 @@ const t = useTranslations(lang);
 		private timelapseFrames: string[] = [];
 		private timelapseInterval: number | null = null;
 		private isTimelapseRecording: boolean = false;
+		private canvas: HTMLCanvasElement;
+		private ctx: CanvasRenderingContext2D | null;
+		private recordings: any[] = [];
+		private captureIntervalMs: number = 1000; // Default 1 second
+		private playbackFps: number = 30; // Default 30 fps
 
 		constructor() {
+			// Initialize canvas for frame capture
+			this.canvas = document.createElement('canvas');
+			this.ctx = this.canvas.getContext('2d');
+			
 			this.initializeElements();
 			this.setupEventListeners();
 			this.loadStats();
@@ -235,6 +279,7 @@ const t = useTranslations(lang);
 
 		private initializeElements() {
 			this.updateTimerDisplay();
+			this.updateDownloadButton();
 		}
 
 		private setupEventListeners() {
@@ -258,6 +303,26 @@ const t = useTranslations(lang);
 			// Timelapse controls
 			document.getElementById('startTimelapse')?.addEventListener('click', () => this.startTimelapse());
 			document.getElementById('stopTimelapse')?.addEventListener('click', () => this.stopTimelapse());
+			document.getElementById('downloadTimelapse')?.addEventListener('click', () => this.downloadLatest());
+
+			// Slider controls
+			document.getElementById('intervalSlider')?.addEventListener('input', (e) => {
+				const value = parseInt((e.target as HTMLInputElement).value);
+				this.captureIntervalMs = value;
+				const display = document.getElementById('intervalValue');
+				if (display) {
+					display.textContent = (value / 1000).toFixed(1) + 's';
+				}
+			});
+
+			document.getElementById('speedSlider')?.addEventListener('input', (e) => {
+				const value = parseInt((e.target as HTMLInputElement).value);
+				this.playbackFps = value;
+				const display = document.getElementById('speedValue');
+				if (display) {
+					display.textContent = value + ' FPS';
+				}
+			});
 
 			// Notes character count
 			const notesTextarea = document.querySelector('textarea');
@@ -389,6 +454,7 @@ const t = useTranslations(lang);
 					const recordBtn = document.getElementById('recordBtn') as HTMLButtonElement;
 					const startTimelapseBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
 					const stopTimelapseBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
+					const downloadTimelapseBtn = document.getElementById('downloadTimelapse') as HTMLButtonElement;
 					
 					if (recordBtn) {
 						recordBtn.disabled = false;
@@ -417,6 +483,7 @@ const t = useTranslations(lang);
 				const recordBtn = document.getElementById('recordBtn') as HTMLButtonElement;
 				const startTimelapseBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
 				const stopTimelapseBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
+				const downloadTimelapseBtn = document.getElementById('downloadTimelapse') as HTMLButtonElement;
 				
 				if (recordBtn) {
 					recordBtn.disabled = true;
@@ -480,54 +547,50 @@ const t = useTranslations(lang);
 			
 			if (startBtn) {
 				startBtn.disabled = true;
-				startBtn.textContent = 'Recording...';
+				startBtn.textContent = '🔴 Recording...';
 			}
 			if (stopBtn) {
 				stopBtn.disabled = false;
 			}
 
-			// Create canvas for capturing frames
-			const canvas = document.createElement('canvas');
-			const ctx = canvas.getContext('2d');
-
-			if (!ctx) {
-				alert('Canvas not supported');
-				return;
-			}
-
 			// Set canvas dimensions
-			canvas.width = video.videoWidth;
-			canvas.height = video.videoHeight;
+			this.canvas.width = video.videoWidth;
+			this.canvas.height = video.videoHeight;
 
-			console.log(`Starting timelapse recording at ${canvas.width}x${canvas.height}`);
+			console.log(`Starting timelapse recording at ${this.canvas.width}x${this.canvas.height}, interval: ${this.captureIntervalMs}ms`);
 
-			// Capture frame every 1 second
+			// Capture frames at specified interval
 			this.timelapseInterval = setInterval(() => {
-				if (!this.isTimelapseRecording) return;
+				if (!this.isTimelapseRecording || !this.ctx) return;
 				
 				try {
 					// Ensure canvas dimensions match video
-					if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-						canvas.width = video.videoWidth;
-						canvas.height = video.videoHeight;
+					if (this.canvas.width !== video.videoWidth || this.canvas.height !== video.videoHeight) {
+						this.canvas.width = video.videoWidth;
+						this.canvas.height = video.videoHeight;
 					}
 					
-					ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+					this.ctx.drawImage(video, 0, 0, this.canvas.width, this.canvas.height);
 					
-					// Convert to base64 image data - using JPEG for better compatibility
-					const frameData = canvas.toDataURL("image/jpeg", 0.8);
+					// Convert to base64 image data
+					const frameData = this.canvas.toDataURL("image/jpeg", 0.8);
 					this.timelapseFrames.push(frameData);
+					
+					// Update button text with frame count
+					if (startBtn) {
+						startBtn.textContent = `🔴 Recording... (${this.timelapseFrames.length} frames)`;
+					}
 					
 					console.log(`Captured frame ${this.timelapseFrames.length}`);
 				} catch (error) {
 					console.error('Error capturing frame:', error);
 				}
-			}, 1000) as any;
+			}, this.captureIntervalMs) as any;
 
 			console.log('Timelapse recording started');
 		}
 
-		private stopTimelapse() {
+		private async stopTimelapse() {
 			if (!this.isTimelapseRecording) return;
 
 			this.isTimelapseRecording = false;
@@ -543,7 +606,7 @@ const t = useTranslations(lang);
 			
 			if (startBtn) {
 				startBtn.disabled = false;
-				startBtn.textContent = 'Start Timelapse';
+				startBtn.textContent = '▶️ Start Timelapse';
 			}
 			if (stopBtn) {
 				stopBtn.disabled = true;
@@ -551,130 +614,191 @@ const t = useTranslations(lang);
 
 			console.log(`Stopping timelapse with ${this.timelapseFrames.length} frames`);
 
-			// Create timelapse video
-			if (this.timelapseFrames.length > 0) {
-				this.createTimelapseVideo();
-			} else {
-				alert('No frames captured for timelapse');
+			if (this.timelapseFrames.length === 0) {
+				alert('No frames captured. Try recording for a longer duration.');
+				return;
 			}
 
+			// Create timelapse video
+			await this.createAdvancedTimelapse();
 			this.timelapseFrames = [];
 		}
 
-		private async createTimelapseVideo() {
+		private async createAdvancedTimelapse() {
 			try {
-				// Check if Whammy is available
-				if (typeof (window as any).Whammy === 'undefined') {
-					console.error('Whammy.js not loaded');
-					this.createTimelapseWithMediaRecorder();
-					return;
+				if (!this.ctx) {
+					throw new Error('Canvas context not available');
 				}
 
-				console.log('Creating timelapse with Whammy.js...');
+				console.log('Creating advanced timelapse video...');
+
+				// Create a video stream from canvas
+				const stream = this.canvas.captureStream(this.playbackFps);
+				const mediaRecorder = new MediaRecorder(stream, {
+					mimeType: 'video/webm'
+				});
+
+				const chunks: BlobPart[] = [];
 				
-				// Create video encoder
-				const encoder = new (window as any).Whammy.Video(10); // 10fps for smoother playback
-				
-				// Add frames to encoder
-				for (let i = 0; i < this.timelapseFrames.length; i++) {
-					try {
-						encoder.add(this.timelapseFrames[i]);
-					} catch (frameError) {
-						console.error(`Error adding frame ${i}:`, frameError);
-					}
-				}
-				
-				// Compile video
-				const output = encoder.compile();
-				
-				if (!output || output.size === 0) {
-					throw new Error('Video compilation failed - output is empty');
-				}
-				
-				// Download the video
-				const url = URL.createObjectURL(output);
-				const a = document.createElement('a');
-				a.href = url;
-				a.download = `timelapse-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.webm`;
-				document.body.appendChild(a);
-				a.click();
-				document.body.removeChild(a);
-				
-				// Clean up
-				setTimeout(() => URL.revokeObjectURL(url), 1000);
-				
-				console.log(`Timelapse saved successfully with ${this.timelapseFrames.length} frames`);
-				alert(`Timelapse created successfully! ${this.timelapseFrames.length} frames compiled.`);
-				
+				return new Promise<void>((resolve, reject) => {
+					mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+					mediaRecorder.onstop = () => {
+						try {
+							const blob = new Blob(chunks, { type: 'video/webm' });
+							const url = URL.createObjectURL(blob);
+							
+							const recording = {
+								id: Date.now(),
+								url: url,
+								blob: blob,
+								timestamp: new Date(),
+								frameCount: this.timelapseFrames.length,
+								fps: this.playbackFps,
+								duration: (this.timelapseFrames.length / this.playbackFps).toFixed(1),
+								interval: this.captureIntervalMs
+							};
+
+							this.recordings.unshift(recording);
+							this.updateRecordingsList();
+							this.updateDownloadButton();
+							
+							console.log(`Timelapse created: ${this.timelapseFrames.length} frames at ${this.playbackFps}fps`);
+							alert(`✨ Timelapse created! ${this.timelapseFrames.length} frames at ${this.playbackFps}fps (${recording.duration}s)`);
+							resolve();
+						} catch (error) {
+							reject(error);
+						}
+					};
+
+					mediaRecorder.onerror = (e) => reject(e);
+					mediaRecorder.start();
+
+					// Play through all frames to create the video
+					let frameIndex = 0;
+					const frameDuration = 1000 / this.playbackFps;
+
+					const playFrames = () => {
+						if (frameIndex < this.timelapseFrames.length && this.ctx) {
+							const img = new Image();
+							img.onload = () => {
+								if (this.ctx) {
+									this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+									this.ctx.drawImage(img, 0, 0);
+									frameIndex++;
+									setTimeout(playFrames, frameDuration);
+								}
+							};
+							img.onerror = () => {
+								frameIndex++;
+								setTimeout(playFrames, frameDuration);
+							};
+							img.src = this.timelapseFrames[frameIndex];
+						} else {
+							mediaRecorder.stop();
+						}
+					};
+
+					setTimeout(playFrames, 100);
+				});
+
 			} catch (error) {
-				console.error('Error creating timelapse with Whammy:', error);
-				console.log('Falling back to alternative method...');
-				this.createTimelapseWithMediaRecorder();
+				console.error('Error creating advanced timelapse:', error);
+				alert(`Error creating timelapse: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
 		}
 
-		private createTimelapseWithMediaRecorder() {
-			try {
-				console.log('Creating timelapse using fallback method...');
-				
-				// Create a simple slideshow as fallback
-				const canvas = document.createElement('canvas');
-				const ctx = canvas.getContext('2d');
-				
-				if (!ctx || this.timelapseFrames.length === 0) {
-					alert('Unable to create timelapse - no frames or canvas not supported');
-					return;
-				}
+		private updateRecordingsList() {
+			const recordingsList = document.getElementById('recordingsList');
+			if (!recordingsList) return;
 
-				// Set canvas size based on first frame
-				const firstImage = new Image();
-				firstImage.onload = () => {
-					canvas.width = firstImage.width;
-					canvas.height = firstImage.height;
-
-					// Create a simple GIF-like sequence by rapidly cycling through frames
-					let frameIndex = 0;
-					const frameDuration = 200; // 200ms per frame = 5fps
-
-					const drawFrame = () => {
-						const img = new Image();
-						img.onload = () => {
-							ctx.clearRect(0, 0, canvas.width, canvas.height);
-							ctx.drawImage(img, 0, 0);
-							
-							frameIndex++;
-							if (frameIndex < this.timelapseFrames.length) {
-								setTimeout(drawFrame, frameDuration);
-							} else {
-								// Export final canvas as image
-								canvas.toBlob((blob) => {
-									if (blob) {
-										const url = URL.createObjectURL(blob);
-										const a = document.createElement('a');
-										a.href = url;
-										a.download = `timelapse-final-frame-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
-										document.body.appendChild(a);
-										a.click();
-										document.body.removeChild(a);
-										URL.revokeObjectURL(url);
-										
-										alert(`Timelapse frames captured! Final frame saved. ${this.timelapseFrames.length} frames were recorded.`);
-									}
-								}, 'image/png');
-							}
-						};
-						img.src = this.timelapseFrames[frameIndex];
-					};
-
-					drawFrame();
-				};
-				firstImage.src = this.timelapseFrames[0];
-
-			} catch (error) {
-				console.error('Fallback method also failed:', error);
-				const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-				alert(`Unable to create timelapse video. Error: ${errorMessage}`);
+			if (this.recordings.length === 0) {
+				recordingsList.innerHTML = `
+					<p class="text-center text-black/60 py-8">
+						No recordings yet. Start your first time-lapse above! 🎥
+					</p>
+				`;
+				return;
 			}
+
+			recordingsList.innerHTML = this.recordings.map(recording => `
+				<div class="flex items-center gap-4 p-4 bg-white/50 rounded-lg border border-gray-200">
+					<video class="w-20 h-15 rounded object-cover" src="${recording.url}" muted loop autoplay></video>
+					<div class="flex-1">
+						<div class="font-semibold text-black">Time-lapse ${recording.id}</div>
+						<div class="text-sm text-black/60">
+							${recording.frameCount} frames • ${recording.fps}fps • ${recording.duration}s<br>
+							Interval: ${(recording.interval/1000).toFixed(1)}s • ${recording.timestamp.toLocaleString()}
+						</div>
+					</div>
+					<div class="flex gap-2">
+						<button onclick="focusDesk.downloadRecording(${recording.id})" 
+								class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+							💾 Download
+						</button>
+						<button onclick="focusDesk.playRecording(${recording.id})" 
+								class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700">
+							▶️ Play
+						</button>
+					</div>
+				</div>
+			`).join('');
+		}
+
+		private updateDownloadButton() {
+			const downloadBtn = document.getElementById('downloadTimelapse') as HTMLButtonElement;
+			if (downloadBtn) {
+				downloadBtn.disabled = this.recordings.length === 0;
+			}
+		}
+
+		private downloadLatest() {
+			if (this.recordings.length > 0) {
+				this.downloadRecording(this.recordings[0].id);
+			}
+		}
+
+		private downloadRecording(id: number) {
+			const recording = this.recordings.find(r => r.id === id);
+			if (!recording) return;
+
+			const a = document.createElement('a');
+			a.href = recording.url;
+			a.download = `timelapse-${recording.id}.webm`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		}
+
+		private playRecording(id: number) {
+			const recording = this.recordings.find(r => r.id === id);
+			if (!recording) return;
+
+			const modal = document.createElement('div');
+			modal.style.cssText = `
+				position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+				background: rgba(0,0,0,0.9); display: flex; align-items: center;
+				justify-content: center; z-index: 1000; backdrop-filter: blur(5px);
+			`;
+			
+			modal.innerHTML = `
+				<div style="max-width: 90%; max-height: 90%; position: relative;">
+					<video controls autoplay style="width: 100%; height: auto; border-radius: 10px; max-height: 80vh;">
+						<source src="${recording.url}" type="video/webm">
+					</video>
+					<button onclick="this.parentElement.parentElement.remove()" 
+							style="position: absolute; top: -40px; right: 0; background: white; 
+								   border: none; border-radius: 50%; width: 30px; height: 30px; 
+								   cursor: pointer; font-size: 18px; font-weight: bold;">×</button>
+					<div style="color: white; text-align: center; margin-top: 10px; font-size: 14px;">
+						${recording.frameCount} frames • ${recording.fps}fps • ${recording.duration}s
+					</div>
+				</div>
+			`;
+			
+			document.body.appendChild(modal);
+			modal.addEventListener('click', (e) => {
+				if (e.target === modal) modal.remove();
+			});
 		}
 
 		private loadStats() {
@@ -716,7 +840,7 @@ const t = useTranslations(lang);
 
 	// Initialize when DOM is loaded
 	document.addEventListener('DOMContentLoaded', () => {
-		new FocusDesk();
+		(window as any).focusDesk = new FocusDesk();
 		
 		// Request notification permission
 		if ('Notification' in window && Notification.permission === 'default') {
