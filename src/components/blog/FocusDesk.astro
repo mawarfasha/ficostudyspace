@@ -44,12 +44,10 @@ const t = useTranslations(lang);
 					<!-- Camera Controls -->
                      
 					<div class="grid grid-cols-2 gap-4 mb-4">
-						<button id="toggleCamera" class="squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-3 px-6 text-lg font-medium">
-							Enable Camera
-						</button>
-						<button id="recordBtn" class="squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-3 px-6 text-lg font-medium" disabled>
-							Record
-						</button>
+						<button id="toggleCamera" class="w-full squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-red-700 py-3 px-6 text-lg font-medium mb-4" disabled>
+						Enable Camera
+					</button>
+						
 					</div>
 					
 					<!-- Timelapse Controls -->
@@ -203,10 +201,10 @@ const t = useTranslations(lang);
 		<!-- Recordings Section -->
 		<div class="mt-8">
 			<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
-				<h3 class="text-xl font-semibold mb-4 text-black text-center">📹 Recent Time-lapses</h3>
+				<h3 class="text-xl font-semibold mb-4 text-black text-center">Recent Time-lapses</h3>
 				<div id="recordingsList" class="space-y-4">
 					<p class="text-center text-black/60 py-8">
-						No recordings yet. Start your first time-lapse above! 🎥
+						No recordings yet. Start your first time-lapse above!
 					</p>
 				</div>
 			</div>
