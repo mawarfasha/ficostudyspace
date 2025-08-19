@@ -44,7 +44,7 @@ const t = useTranslations(lang);
 					<!-- Camera Controls -->
                      
 					<div class="grid grid-cols-2 gap-4 mb-4">
-						<button id="toggleCamera" class="w-full squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-red-700 py-3 px-6 text-lg font-medium mb-4" disabled>
+						<button id="toggleCamera" class="w-full squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-gray-500 hover:text-black py-3 px-6 text-lg font-medium mb-4" disabled>
 						Enable Camera
 					</button>
 						
@@ -71,15 +71,15 @@ const t = useTranslations(lang);
 					</div>
 					
 					<div class="grid grid-cols-2 gap-4 mb-4">
-						<button id="startTimelapse" class="squircle-bg rounded-lg bg-green-600 text-white transition-all hover:bg-green-700 py-3 px-6 text-lg font-medium" disabled>
+						<button id="startTimelapse" class="squircle-bg rounded-lg bg-green-600 text-white transition-all hover:bg-gray-500 hover:text-black py-3 px-6 text-lg font-medium" disabled>
 							▶ Start Timelapse
 						</button>
-						<button id="stopTimelapse" class="squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-red-700 py-3 px-6 text-lg font-medium" disabled>
+						<button id="stopTimelapse" class="squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-gray-500 hover:text-black py-3 px-6 text-lg font-medium" disabled>
 							⏹ Stop Timelapse
 						</button>
 					</div>
 					
-					<button id="downloadTimelapse" class="w-full squircle-bg rounded-lg bg-blue-600 text-white transition-all hover:bg-blue-700 py-3 px-6 text-lg font-medium mb-4" disabled>
+					<button id="downloadTimelapse" class="w-full squircle-bg rounded-lg bg-blue-600 text-white transition-all hover:bg-gray-500 hover:text-black py-3 px-6 text-lg font-medium mb-4" disabled>
 						Download Latest
 					</button>
 					
@@ -95,7 +95,7 @@ const t = useTranslations(lang);
 					></textarea>
 					<div class="mt-4 flex justify-between items-center">
 						<span class="text-sm text-black/60" id="charCount">0 characters</span>
-						<button class="squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white px-4 py-2">
+						<button class="squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black px-4 py-2">
 							Save Notes
 						</button>
 					</div>
@@ -136,26 +136,26 @@ const t = useTranslations(lang);
 
 					<!-- Timer Presets -->
 					<div class="grid grid-cols-3 gap-2 mb-4">
-						<button class="preset-btn squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-2 text-sm" data-minutes="25">
+						<button class="preset-btn squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black py-2 px-2 text-sm" data-minutes="25">
 							25m
 						</button>
-						<button class="preset-btn squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-2 text-sm" data-minutes="45">
+						<button class="preset-btn squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black py-2 px-2 text-sm" data-minutes="45">
 							45m
 						</button>
-						<button class="preset-btn squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-2 text-sm" data-minutes="60">
+						<button class="preset-btn squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black py-2 px-2 text-sm" data-minutes="60">
 							60m
 						</button>
 					</div>
 
 					<!-- Timer Controls -->
 					<div class="space-y-2">
-						<button id="startBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+						<button id="startBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black py-2 px-4">
 							Start
 						</button>
-						<button id="pauseBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4" disabled>
+						<button id="pauseBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black py-2 px-4" disabled>
 							Pause
 						</button>
-						<button id="resetBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+						<button id="resetBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black py-2 px-4">
 							Reset
 						</button>
 					</div>
@@ -184,13 +184,13 @@ const t = useTranslations(lang);
 				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
 					<h3 class="text-xl font-semibold mb-4 text-black text-center">Quick Actions</h3>
 					<div class="space-y-2">
-						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black py-2 px-4">
 							Break Time
 						</button>
-						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black py-2 px-4">
 							Background Sounds
 						</button>
-						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:text-white py-2 px-4">
+						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-gray-500 hover:text-black py-2 px-4">
 							Do Not Disturb
 						</button>
 					</div>
@@ -730,11 +730,11 @@ const t = useTranslations(lang);
 					</div>
 					<div class="flex gap-2">
 						<button onclick="focusDesk.downloadRecording(${recording.id})" 
-								class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+								class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-gray-500 hover:text-black">
 							💾 Download
 						</button>
 						<button onclick="focusDesk.playRecording(${recording.id})" 
-								class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700">
+								class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-gray-500 hover:text-black">
 							▶️ Play
 						</button>
 					</div>
