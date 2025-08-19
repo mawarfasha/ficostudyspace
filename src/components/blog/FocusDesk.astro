@@ -6,6 +6,11 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 ---
 
+<!-- Yellow Blob Cursor Follower -->
+<div id="cursor-follower" data-xdata="{ isTouchDevice: 'ontouchstart' in window }" data-xshow="!isTouchDevice">
+	<div id="blob" class="blob"></div>
+</div>
+
 <section>
 	<div class="top-[-10rem]transform-gpu absolute inset-x-0 overflow-hidden blur-3xl sm:top-[-20rem]" aria-hidden="true">
 		<div class="gradient-element"></div>
@@ -30,7 +35,7 @@ const t = useTranslations(lang);
 					
 					<!-- Camera Display - Much Larger -->
 					<div class="relative bg-black/50 rounded-lg overflow-hidden mb-6 aspect-video h-96">
-						<video id="cameraFeed" autoplay muted class="w-full h-full object-cover"></video>
+						<video id="cameraFeed" autoplay muted class="w-full h-full object-cover camera-mirrored"></video>
 						<div id="cameraPlaceholder" class="absolute inset-0 flex items-center justify-center text-white/60">
 							<div class="text-center">
 								<svg class="w-24 h-24 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
@@ -44,7 +49,7 @@ const t = useTranslations(lang);
 					<!-- Camera Controls -->
                      
 					<div class="flex justify-center mb-4">
-						<button id="toggleCamera" class="squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium" disabled>
+						<button id="toggleCamera" class="squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium" data-cursor-hover data-cursor-parallax disabled>
 						Enable Camera
 					</button>
 					</div>
@@ -70,10 +75,10 @@ const t = useTranslations(lang);
 					</div>
 					
 					<div class="grid grid-cols-2 gap-4 mb-4">
-						<button id="startTimelapse" class="squircle-bg rounded-lg bg-green-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium" disabled>
+						<button id="startTimelapse" class="squircle-bg rounded-lg bg-green-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium" data-cursor-hover data-cursor-parallax disabled>
 							▶ Start Timelapse
 						</button>
-						<button id="stopTimelapse" class="squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium" disabled>
+						<button id="stopTimelapse" class="squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium" data-cursor-hover data-cursor-parallax disabled>
 							⏹ Stop Timelapse
 						</button>
 					</div>
@@ -86,7 +91,7 @@ const t = useTranslations(lang);
 				</div>
 
 				<!-- Session Notes -->
-				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+				<!-- <div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
 					<h3 class="text-xl font-semibold mb-4 text-black">Session Notes</h3>
 					<textarea 
 						placeholder="Take notes during your focus session..."
@@ -98,10 +103,10 @@ const t = useTranslations(lang);
 							Save Notes
 						</button>
 					</div>
-				</div>
+				</div> -->
 
 				<!-- Study Session Info -->
-				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+				<!-- <div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
 					<h3 class="text-xl font-semibold mb-4 text-black">Current Session</h3>
 					<div class="grid grid-cols-2 gap-4">
 						<div>
@@ -118,7 +123,7 @@ const t = useTranslations(lang);
 							<input type="text" placeholder="e.g., Complete Chapter 3" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
 						</div>
 					</div>
-				</div>
+				</div> -->
 			</div>
 
 			<!-- Right Sidebar - Timer & Controls (1/3 width) -->
@@ -148,13 +153,13 @@ const t = useTranslations(lang);
 
 					<!-- Timer Controls -->
 					<div class="space-y-2">
-						<button id="startBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-slate-200 hover:text-black py-2 px-4">
+						<button id="startBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-slate-200 hover:text-black py-2 px-4" data-cursor-hover data-cursor-parallax>
 							Start
 						</button>
-						<button id="pauseBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-slate-200 hover:text-black py-2 px-4" disabled>
+						<button id="pauseBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-slate-200 hover:text-black py-2 px-4" data-cursor-hover data-cursor-parallax disabled>
 							Pause
 						</button>
-						<button id="resetBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-slate-200 hover:text-black py-2 px-4">
+						<button id="resetBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-slate-200 hover:text-black py-2 px-4" data-cursor-hover data-cursor-parallax>
 							Reset
 						</button>
 					</div>
@@ -180,7 +185,7 @@ const t = useTranslations(lang);
 				</div>
 
 				<!-- Quick Actions -->
-				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
+				<!-- <div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
 					<h3 class="text-xl font-semibold mb-4 text-black text-center">Quick Actions</h3>
 					<div class="space-y-2">
 						<button class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-slate-200 hover:text-black py-2 px-4">
@@ -193,12 +198,12 @@ const t = useTranslations(lang);
 							Do Not Disturb
 						</button>
 					</div>
-				</div>
+				</div> -->
 			</div>
 		</div>
 		
 		<!-- Recordings Section -->
-		<div class="mt-8">
+		<div class="-mt-8">
 			<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
 				<h3 class="text-xl font-semibold mb-4 text-black text-center">Recent Time-lapses</h3>
 				<div id="recordingsList" class="space-y-4">
@@ -233,9 +238,138 @@ const t = useTranslations(lang);
 			74.1% 44.1%
 		);
 	}
+
+	/* Yellow Blob Cursor Follower Styles */
+	#cursor-follower {
+		position: fixed;
+		top: 0;
+		left: 0;
+		opacity: 0;
+		height: 100vh;
+		width: 100vw;
+		transition: opacity 0.2s ease-in-out 1s;
+		pointer-events: none;
+		z-index: 10;
+	}
+
+	@keyframes fadeIn {
+		0% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+
+	#cursor-follower.active {
+		animation: fadeIn 2s forwards;
+	}
+
+	#blob {
+		position: fixed;
+		border-radius: 50px;
+		filter: blur(50px);
+		opacity: 0.2;
+		top: 0;
+		left: 0;
+		height: 200px;
+		width: 200px;
+		background-color: #edb74d;
+		transform: scale(0.5) translate(-50%, -50%);
+		pointer-events: none;
+		will-change: transform;
+	}
+
+	/* Camera mirroring */
+	.camera-mirrored {
+		transform: scaleX(-1);
+	}
 </style>
 
 <script is:inline>
+	// Yellow Blob Cursor Follower functionality
+	function initBlobCursor() {
+		const isTouchDevice = window.matchMedia("(hover: none)").matches;
+		if (isTouchDevice) return;
+
+		var mouse = { x: 0, y: 0 };
+		var pos = { x: 0, y: 0 };
+		var ratio = 0.65;
+		var blob = document.getElementById("blob");
+		var magicCursor = document.getElementById("cursor-follower");
+
+		if (!blob || !magicCursor) {
+			console.log('Blob elements not found:', { blob: !!blob, magicCursor: !!magicCursor });
+			return;
+		}
+
+		console.log('Initializing blob cursor...');
+
+		// Set initial position
+		blob.style.transform = 'translate(-50%, -50%)';
+
+		document.addEventListener("mousemove", mouseMove);
+
+		function updatePosition() {
+			pos.x += (mouse.x - pos.x) * ratio;
+			pos.y += (mouse.y - pos.y) * ratio;
+			blob.style.transform = `translate(${pos.x}px, ${pos.y}px) translate(-50%, -50%)`;
+		}
+
+		function mouseMove(e) {
+			var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+			mouse.x = e.pageX;
+			mouse.y = e.pageY - scrollTop;
+		}
+
+		// Use requestAnimationFrame instead of GSAP ticker
+		function animate() {
+			updatePosition();
+			requestAnimationFrame(animate);
+		}
+		animate();
+
+		// Add hover effects for interactive elements
+		let parallaxWraps = document.querySelectorAll("[data-cursor-hover]");
+		console.log('Found hover elements:', parallaxWraps.length);
+		
+		parallaxWraps.forEach(function (wrap) {
+			wrap.addEventListener("mouseenter", function (e) {
+				blob.style.opacity = '0.5';
+				blob.style.transition = 'opacity 0.5s ease';
+			});
+
+			wrap.addEventListener("mouseleave", function (e) {
+				blob.style.opacity = '0.2';
+				blob.style.transition = 'opacity 0.5s ease';
+				
+				if (wrap && wrap.hasAttribute("data-cursor-parallax")) {
+					wrap.style.transform = 'scale(1) translate(0px, 0px)';
+					wrap.style.transition = 'transform 0.3s ease';
+				}
+			});
+
+			wrap.addEventListener("mousemove", function (e) {
+				if (wrap && wrap.hasAttribute("data-cursor-parallax")) {
+					var boundingRect = wrap.getBoundingClientRect();
+					var relX = e.pageX - boundingRect.left;
+					var relY = e.pageY - boundingRect.top;
+					var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+					
+					var movement = 10;
+					var x = ((relX - boundingRect.width / 2) / boundingRect.width) * movement;
+					var y = ((relY - boundingRect.height / 2 - scrollTop) / boundingRect.height) * movement;
+					
+					wrap.style.transform = `translate(${x}px, ${y}px)`;
+					wrap.style.transition = 'transform 0.3s ease';
+				}
+			});
+		});
+
+		magicCursor.classList.add("active");
+		console.log('Blob cursor initialized successfully');
+	}
+
 	// Plain JavaScript implementation for better Astro compatibility
 	class TimeLapseRecorder {
 		constructor() {
@@ -281,6 +415,7 @@ const t = useTranslations(lang);
 		async init() {
 			console.log('Initializing TimeLapseRecorder...');
 			this.setupEventListeners();
+			this.loadRecordings(); // Load saved recordings
 			this.updateUI(); // Enable buttons initially
 			this.updateStatus('📷 Camera Ready - Click "Enable Camera" to start');
 		}
@@ -431,7 +566,16 @@ const t = useTranslations(lang);
 		captureFrame() {
 			if (!this.isRecording || !this.ctx || !this.video) return;
 
-			this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+			// Save the context state
+			this.ctx.save();
+			
+			// Mirror the image horizontally (flip)
+			this.ctx.scale(-1, 1);
+			this.ctx.drawImage(this.video, -this.canvas.width, 0, this.canvas.width, this.canvas.height);
+			
+			// Restore the context state
+			this.ctx.restore();
+			
 			const frameData = this.canvas.toDataURL('image/jpeg', 0.8);
 			this.frames.push(frameData);
 			
@@ -495,6 +639,7 @@ const t = useTranslations(lang);
 					};
 
 					this.recordings.unshift(recording);
+					this.saveRecordings(); // Save to localStorage
 					this.updateRecordingsList();
 					this.updateStatus(`✨ Time-lapse created! ${this.frames.length} frames at ${fps}fps`);
 					resolve();
@@ -509,6 +654,8 @@ const t = useTranslations(lang);
 						img.onload = () => {
 							if (this.ctx) {
 								this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+								
+								// Since frames are already mirrored when captured, draw them normally
 								this.ctx.drawImage(img, 0, 0);
 								frameIndex++;
 								setTimeout(playFrames, frameDuration);
@@ -536,28 +683,56 @@ const t = useTranslations(lang);
 				return;
 			}
 
-			this.recordingsList.innerHTML = this.recordings.map(recording => `
-				<div class="flex items-center gap-4 p-4 bg-white/50 rounded-lg border border-gray-200">
-					<video class="w-20 h-15 rounded object-cover" src="${recording.url}" muted loop autoplay></video>
-					<div class="flex-1">
-						<div class="font-semibold text-black">Time-lapse ${recording.id}</div>
-						<div class="text-sm text-black/60">
-							${recording.frameCount} frames • ${recording.fps}fps • ${recording.duration}s<br>
-							Created: ${recording.timestamp.toLocaleString()}
+			this.recordingsList.innerHTML = this.recordings.map(recording => {
+				const hasVideo = recording.url ? true : false;
+				const videoElement = hasVideo 
+					? `<video class="w-20 h-15 rounded object-cover" src="${recording.url}" muted loop autoplay></video>`
+					: `<div class="w-20 h-15 rounded bg-gray-300 flex items-center justify-center">
+						<svg class="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+							<path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM5 8a1 1 0 000 2h8a1 1 0 100-2H5z"></path>
+						</svg>
+					</div>`;
+
+				const downloadButton = hasVideo 
+					? `<button onclick="timeLapse.downloadRecording(${recording.id})" 
+							class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-slate-200 hover:text-black">
+						💾 Download
+					</button>`
+					: `<button disabled class="px-3 py-1 bg-gray-400 text-white rounded text-sm cursor-not-allowed">
+						💾 Not Available
+					</button>`;
+
+				const playButton = hasVideo 
+					? `<button onclick="timeLapse.playRecording(${recording.id})" 
+							class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-slate-200 hover:text-black">
+						▶️ Play
+					</button>`
+					: `<button disabled class="px-3 py-1 bg-gray-400 text-white rounded text-sm cursor-not-allowed">
+						▶️ Not Available
+					</button>`;
+
+				return `
+					<div class="flex items-center gap-4 p-4 bg-white/50 rounded-lg border border-gray-200">
+						${videoElement}
+						<div class="flex-1">
+							<div class="font-semibold text-black">Time-lapse ${recording.id}</div>
+							<div class="text-sm text-black/60">
+								${recording.frameCount} frames • ${recording.fps}fps • ${recording.duration}s<br>
+								Created: ${recording.timestamp.toLocaleString()}
+								${!hasVideo ? '<br><span class="text-orange-600">⚠️ Video not available (from previous session)</span>' : ''}
+							</div>
+						</div>
+						<div class="flex gap-2">
+							${downloadButton}
+							${playButton}
+							<button onclick="timeLapse.deleteRecording(${recording.id})" 
+									class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-slate-200 hover:text-black">
+								🗑️ Delete
+							</button>
 						</div>
 					</div>
-					<div class="flex gap-2">
-						<button onclick="timeLapse.downloadRecording(${recording.id})" 
-								class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-slate-200 hover:text-black">
-							💾 Download
-						</button>
-						<button onclick="timeLapse.playRecording(${recording.id})" 
-								class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-slate-200 hover:text-black">
-							▶️ Play
-						</button>
-					</div>
-				</div>
-			`).join('');
+				`;
+			}).join('');
 		}
 
 		downloadRecording(id) {
@@ -632,6 +807,51 @@ const t = useTranslations(lang);
 			if (this.downloadBtn) {
 				this.downloadBtn.disabled = this.recordings.length === 0;
 			}
+		}
+
+		// LocalStorage methods for recordings persistence
+		saveRecordings() {
+			try {
+				// We can't save blob URLs, so we'll save recording metadata
+				const recordingsToSave = this.recordings.map(recording => ({
+					id: recording.id,
+					timestamp: recording.timestamp.toISOString(),
+					frameCount: recording.frameCount,
+					fps: recording.fps,
+					duration: recording.duration
+				}));
+				localStorage.setItem('focusDesk_recordings', JSON.stringify(recordingsToSave));
+				console.log('Recordings saved to localStorage');
+			} catch (error) {
+				console.error('Error saving recordings:', error);
+			}
+		}
+
+		loadRecordings() {
+			try {
+				const savedRecordings = localStorage.getItem('focusDesk_recordings');
+				if (savedRecordings) {
+					const recordingsData = JSON.parse(savedRecordings);
+					// Note: We can't restore blob URLs, so we'll just show the metadata
+					this.recordings = recordingsData.map(data => ({
+						...data,
+						timestamp: new Date(data.timestamp),
+						url: null, // URL will be null for loaded recordings
+						blob: null // Blob will be null for loaded recordings
+					}));
+					console.log('Loaded recordings from localStorage:', this.recordings.length);
+					this.updateRecordingsList();
+				}
+			} catch (error) {
+				console.error('Error loading recordings:', error);
+			}
+		}
+
+		deleteRecording(id) {
+			this.recordings = this.recordings.filter(r => r.id !== id);
+			this.saveRecordings();
+			this.updateRecordingsList();
+			this.updateUI();
 		}
 
 		updateStatus(message) {
@@ -780,29 +1000,122 @@ const t = useTranslations(lang);
 		}
 
 		loadStats() {
+			const today = new Date().toDateString();
+			const lastActiveDate = localStorage.getItem('focusDesk_lastActiveDate');
+			
+			// Check if streak should be reset
+			let currentStreak = parseInt(localStorage.getItem('focusDesk_currentStreak') || '0');
+			
+			if (lastActiveDate) {
+				const lastDate = new Date(lastActiveDate);
+				const todayDate = new Date(today);
+				const daysDiff = Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+				
+				if (daysDiff > 1) {
+					// More than 1 day gap, reset streak
+					currentStreak = 0;
+					localStorage.setItem('focusDesk_currentStreak', '0');
+				}
+			}
+
 			// Load stats from localStorage or set defaults
 			const stats = {
 				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0'),
 				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0'),
-				currentStreak: parseInt(localStorage.getItem('focusDesk_currentStreak') || '0')
+				currentStreak: currentStreak,
+				todaySessions: this.getTodaySessions()
 			};
 
 			this.updateStatsDisplay(stats);
 		}
 
+		getTodaySessions() {
+			const today = new Date().toDateString();
+			const todaySessionsData = localStorage.getItem('focusDesk_todaySessions');
+			
+			if (todaySessionsData) {
+				const data = JSON.parse(todaySessionsData);
+				if (data.date === today) {
+					return data.count;
+				}
+			}
+			return 0;
+		}
+
 		incrementStats() {
+			const today = new Date().toDateString();
+			const lastActiveDate = localStorage.getItem('focusDesk_lastActiveDate');
+			
+			// Update today's sessions
+			const todaySessions = this.getTodaySessions() + 1;
+			localStorage.setItem('focusDesk_todaySessions', JSON.stringify({
+				date: today,
+				count: todaySessions
+			}));
+
+			// Handle streak logic
+			let currentStreak = parseInt(localStorage.getItem('focusDesk_currentStreak') || '0');
+			
+			if (lastActiveDate) {
+				const lastDate = new Date(lastActiveDate);
+				const todayDate = new Date(today);
+				const daysDiff = Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+				
+				if (daysDiff === 1) {
+					// Consecutive day, increment streak
+					currentStreak += 1;
+				} else if (daysDiff === 0) {
+					// Same day, keep streak (don't increment)
+				} else {
+					// Gap in days, start new streak
+					currentStreak = 1;
+				}
+			} else {
+				// First time, start streak
+				currentStreak = 1;
+			}
+
 			const currentStats = {
 				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0') + 1,
 				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0') + 25,
-				currentStreak: parseInt(localStorage.getItem('focusDesk_currentStreak') || '0') + 1
+				currentStreak: currentStreak,
+				todaySessions: todaySessions
 			};
 
 			// Save to localStorage
 			localStorage.setItem('focusDesk_sessionsCompleted', currentStats.sessionsCompleted.toString());
 			localStorage.setItem('focusDesk_totalFocusTime', currentStats.totalFocusTime.toString());
 			localStorage.setItem('focusDesk_currentStreak', currentStats.currentStreak.toString());
+			localStorage.setItem('focusDesk_lastActiveDate', today);
 
 			this.updateStatsDisplay(currentStats);
+			
+			// Show achievement notifications
+			this.showAchievements(currentStats);
+		}
+
+		showAchievements(stats) {
+			// Show achievement notifications for milestones
+			if (stats.sessionsCompleted % 10 === 0) {
+				this.showNotification(`🎉 Milestone reached! ${stats.sessionsCompleted} sessions completed!`);
+			}
+			
+			if (stats.currentStreak === 7) {
+				this.showNotification(`🔥 Amazing! You've got a 7-day streak!`);
+			} else if (stats.currentStreak === 30) {
+				this.showNotification(`🏆 Incredible! 30-day streak achieved!`);
+			} else if (stats.currentStreak > 0 && stats.currentStreak % 5 === 0) {
+				this.showNotification(`⭐ Great job! ${stats.currentStreak}-day streak!`);
+			}
+		}
+
+		showNotification(message) {
+			if (Notification.permission === 'granted') {
+				new Notification('Focus Desk Achievement!', {
+					body: message,
+					icon: '/favicon.ico'
+				});
+			}
 		}
 
 		updateStatsDisplay(stats) {
@@ -819,6 +1132,14 @@ const t = useTranslations(lang);
 	// Initialize when DOM is loaded
 	document.addEventListener('DOMContentLoaded', () => {
 		console.log('DOM loaded, initializing...');
+		
+		// Initialize blob cursor first
+		try {
+			initBlobCursor();
+			console.log('BlobCursor initialized');
+		} catch (error) {
+			console.error('Error initializing BlobCursor:', error);
+		}
 		
 		try {
 			window.timeLapse = new TimeLapseRecorder();
