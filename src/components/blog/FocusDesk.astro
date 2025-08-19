@@ -74,15 +74,15 @@ const t = useTranslations(lang);
 					
 					<div class="grid grid-cols-2 gap-4 mb-4">
 						<button id="startTimelapse" class="squircle-bg rounded-lg bg-green-600 text-white transition-all hover:bg-green-700 py-3 px-6 text-lg font-medium" disabled>
-							▶️ Start Timelapse
+							▶ Start Timelapse
 						</button>
 						<button id="stopTimelapse" class="squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-red-700 py-3 px-6 text-lg font-medium" disabled>
-							⏹️ Stop Timelapse
+							⏹ Stop Timelapse
 						</button>
 					</div>
 					
 					<button id="downloadTimelapse" class="w-full squircle-bg rounded-lg bg-blue-600 text-white transition-all hover:bg-blue-700 py-3 px-6 text-lg font-medium mb-4" disabled>
-						💾 Download Latest
+						Download Latest
 					</button>
 					
 					<p class="text-sm text-black/50 text-center">Monitor your focus and posture during study sessions</p>
@@ -606,7 +606,7 @@ const t = useTranslations(lang);
 			
 			if (startBtn) {
 				startBtn.disabled = false;
-				startBtn.textContent = '▶️ Start Timelapse';
+				startBtn.textContent = 'Start Timelapse';
 			}
 			if (stopBtn) {
 				stopBtn.disabled = true;
