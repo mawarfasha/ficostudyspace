@@ -14,16 +14,8 @@ const t = useTranslations(lang);
 		<!-- svg: first layer -->
 		<svg class="hidden" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg">
 			<filter id="article-noise-filter">
-				<feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"></feTurbulen					<div class="flex gap-2">
-						<button onclick="focusDesk.downloadRecording(${recording.id})" 
-								class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-orange-100 hover:text-black">
-							💾 Download
-						</button>
-						<button onclick="focusDesk.playRecording(${recording.id})" 
-								class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-orange-100 hover:text-black">
-							▶️ Play
-						</button>
-					</div>filter>
+				<feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"></feTurbulence>
+			</filter>
 		</svg>
 		
 		<Title title="Focus Mode" subtitle="Your Digital Study Desk" class="pb-6 pt-8 uppercase" />
@@ -244,481 +236,285 @@ const t = useTranslations(lang);
 	}
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/whammy@0.0.1/whammy.min.js"></script>
 <script>
-	class FocusDesk {
-		private timer: number | null = null;
-		private timeRemaining: number = 25 * 60; // 25 minutes in seconds
-		private isRunning: boolean = false;
-		private cameraStream: MediaStream | null = null;
-		private isRecording: boolean = false;
-		private timelapseFrames: string[] = [];
-		private timelapseInterval: number | null = null;
-		private isTimelapseRecording: boolean = false;
+	interface Recording {
+		id: number;
+		url: string;
+		blob: Blob;
+		timestamp: Date;
+		frameCount: number;
+		fps: number;
+		duration: string;
+	}
+
+	interface Window {
+		timeLapse: TimeLapseRecorder;
+	}
+
+	class TimeLapseRecorder {
+		private video: HTMLVideoElement | null;
+		private startBtn: HTMLButtonElement | null;
+		private stopBtn: HTMLButtonElement | null;
+		private downloadBtn: HTMLButtonElement | null;
+		private toggleCameraBtn: HTMLButtonElement | null;
+		private intervalSlider: HTMLInputElement | null;
+		private speedSlider: HTMLInputElement | null;
+		private intervalValue: HTMLElement | null;
+		private speedValue: HTMLElement | null;
+		private recordingsList: HTMLElement | null;
+		private cameraPlaceholder: HTMLElement | null;
+
+		private mediaRecorder: MediaRecorder | null = null;
+		private stream: MediaStream | null = null;
 		private canvas: HTMLCanvasElement;
 		private ctx: CanvasRenderingContext2D | null;
-		private recordings: any[] = [];
-		private captureIntervalMs: number = 1000; // Default 1 second
-		private playbackFps: number = 30; // Default 30 fps
+		private frames: string[] = [];
+		private isRecording: boolean = false;
+		private captureInterval: number | null = null;
+		private recordings: Recording[] = [];
+		private cameraEnabled: boolean = false;
 
 		constructor() {
-			// Initialize canvas for frame capture
+			this.video = document.getElementById('cameraFeed') as HTMLVideoElement;
+			this.startBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
+			this.stopBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
+			this.downloadBtn = document.getElementById('downloadTimelapse') as HTMLButtonElement;
+			this.toggleCameraBtn = document.getElementById('toggleCamera') as HTMLButtonElement;
+			this.intervalSlider = document.getElementById('intervalSlider') as HTMLInputElement;
+			this.speedSlider = document.getElementById('speedSlider') as HTMLInputElement;
+			this.intervalValue = document.getElementById('intervalValue');
+			this.speedValue = document.getElementById('speedValue');
+			this.recordingsList = document.getElementById('recordingsList');
+			this.cameraPlaceholder = document.getElementById('cameraPlaceholder');
+
 			this.canvas = document.createElement('canvas');
 			this.ctx = this.canvas.getContext('2d');
-			
-			this.initializeElements();
+
+			this.init();
+		}
+
+		private async init() {
 			this.setupEventListeners();
-			this.loadStats();
-			this.checkWhammyAvailability();
-		}
-
-		private checkWhammyAvailability() {
-			// Check if Whammy.js is loaded
-			setTimeout(() => {
-				if (typeof (window as any).Whammy === 'undefined') {
-					console.warn('Whammy.js not loaded - timelapse will use fallback method');
-				} else {
-					console.log('Whammy.js loaded successfully');
-				}
-			}, 1000);
-		}
-
-		private initializeElements() {
-			this.updateTimerDisplay();
-			this.updateDownloadButton();
+			this.updateStatus('📷 Camera Ready - Click "Enable Camera" to start');
 		}
 
 		private setupEventListeners() {
-			// Timer controls
-			document.getElementById('startBtn')?.addEventListener('click', () => this.startTimer());
-			document.getElementById('pauseBtn')?.addEventListener('click', () => this.pauseTimer());
-			document.getElementById('resetBtn')?.addEventListener('click', () => this.resetTimer());
-
-			// Timer presets
-			document.querySelectorAll('.preset-btn').forEach(btn => {
-				btn.addEventListener('click', (e) => {
-					const minutes = parseInt((e.target as HTMLElement).dataset.minutes || '25');
-					this.setTimer(minutes);
-				});
-			});
-
-			// Camera controls
-			document.getElementById('toggleCamera')?.addEventListener('click', () => this.toggleCamera());
-			document.getElementById('recordBtn')?.addEventListener('click', () => this.toggleRecording());
-
-			// Timelapse controls
-			document.getElementById('startTimelapse')?.addEventListener('click', () => this.startTimelapse());
-			document.getElementById('stopTimelapse')?.addEventListener('click', () => this.stopTimelapse());
-			document.getElementById('downloadTimelapse')?.addEventListener('click', () => this.downloadLatest());
-
-			// Slider controls
-			document.getElementById('intervalSlider')?.addEventListener('input', (e) => {
-				const value = parseInt((e.target as HTMLInputElement).value);
-				this.captureIntervalMs = value;
-				const display = document.getElementById('intervalValue');
-				if (display) {
-					display.textContent = (value / 1000).toFixed(1) + 's';
-				}
-			});
-
-			document.getElementById('speedSlider')?.addEventListener('input', (e) => {
-				const value = parseInt((e.target as HTMLInputElement).value);
-				this.playbackFps = value;
-				const display = document.getElementById('speedValue');
-				if (display) {
-					display.textContent = value + ' FPS';
-				}
-			});
-
-			// Notes character count
-			const notesTextarea = document.querySelector('textarea');
-			notesTextarea?.addEventListener('input', () => {
-				const charCount = document.getElementById('charCount');
-				if (charCount) {
-					charCount.textContent = `${notesTextarea.value.length} characters`;
-				}
-			});
-		}
-
-		private setTimer(minutes: number) {
-			this.timeRemaining = minutes * 60;
-			this.updateTimerDisplay();
-			if (this.isRunning) {
-				this.pauseTimer();
+			if (this.toggleCameraBtn) {
+				this.toggleCameraBtn.addEventListener('click', () => this.toggleCamera());
 			}
-		}
 
-		private startTimer() {
-			if (!this.isRunning) {
-				this.isRunning = true;
-				this.timer = window.setInterval(() => {
-					this.timeRemaining--;
-					this.updateTimerDisplay();
-					
-					if (this.timeRemaining <= 0) {
-						this.completeSession();
+			if (this.startBtn) {
+				this.startBtn.addEventListener('click', () => this.startRecording());
+			}
+
+			if (this.stopBtn) {
+				this.stopBtn.addEventListener('click', () => this.stopRecording());
+			}
+
+			if (this.downloadBtn) {
+				this.downloadBtn.addEventListener('click', () => this.downloadLatest());
+			}
+
+			if (this.intervalSlider) {
+				this.intervalSlider.addEventListener('input', (e) => {
+					const value = parseInt((e.target as HTMLInputElement).value);
+					if (this.intervalValue) {
+						this.intervalValue.textContent = (value / 1000).toFixed(1) + 's';
 					}
-				}, 1000);
-
-				this.updateControls();
-				this.updateTimerStatus('Focus time! Stay concentrated.');
-			}
-		}
-
-		private pauseTimer() {
-			if (this.isRunning && this.timer) {
-				this.isRunning = false;
-				clearInterval(this.timer);
-				this.timer = null;
-				this.updateControls();
-				this.updateTimerStatus('Timer paused');
-			}
-		}
-
-		private resetTimer() {
-			if (this.timer) {
-				clearInterval(this.timer);
-				this.timer = null;
-			}
-			this.isRunning = false;
-			this.timeRemaining = 25 * 60;
-			this.updateTimerDisplay();
-			this.updateControls();
-			this.updateTimerStatus('Ready to start');
-		}
-
-		private completeSession() {
-			if (this.timer) {
-				clearInterval(this.timer);
-				this.timer = null;
-			}
-			this.isRunning = false;
-			this.updateControls();
-			this.updateTimerStatus('Session completed! Great work!');
-			this.incrementStats();
-			
-			// Show completion notification
-			if (Notification.permission === 'granted') {
-				new Notification('Focus Session Complete!', {
-					body: 'Great job! You completed your focus session.',
-					icon: '/favicon.ico'
 				});
 			}
-		}
 
-		private updateTimerDisplay() {
-			const minutes = Math.floor(this.timeRemaining / 60);
-			const seconds = this.timeRemaining % 60;
-			const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-			
-			const timerDisplay = document.getElementById('timerDisplay');
-			if (timerDisplay) {
-				timerDisplay.textContent = display;
-			}
-		}
-
-		private updateTimerStatus(status: string) {
-			const statusElement = document.getElementById('timerStatus');
-			if (statusElement) {
-				statusElement.textContent = status;
-			}
-		}
-
-		private updateControls() {
-			const startBtn = document.getElementById('startBtn') as HTMLButtonElement;
-			const pauseBtn = document.getElementById('pauseBtn') as HTMLButtonElement;
-			
-			if (startBtn && pauseBtn) {
-				startBtn.disabled = this.isRunning;
-				pauseBtn.disabled = !this.isRunning;
+			if (this.speedSlider) {
+				this.speedSlider.addEventListener('input', (e) => {
+					const value = parseInt((e.target as HTMLInputElement).value);
+					if (this.speedValue) {
+						this.speedValue.textContent = value + ' FPS';
+					}
+				});
 			}
 		}
 
 		private async toggleCamera() {
-			const video = document.getElementById('cameraFeed') as HTMLVideoElement;
-			const placeholder = document.getElementById('cameraPlaceholder');
-			const toggleBtn = document.getElementById('toggleCamera');
-
-			if (!this.cameraStream) {
+			if (!this.cameraEnabled) {
 				try {
-					this.cameraStream = await navigator.mediaDevices.getUserMedia({ 
-						video: { width: 640, height: 480 },
-						audio: false 
+					this.stream = await navigator.mediaDevices.getUserMedia({
+						video: { width: 1280, height: 720 },
+						audio: false
 					});
 					
-					if (video) {
-						video.srcObject = this.cameraStream;
-						video.style.display = 'block';
-					}
-					if (placeholder) {
-						placeholder.style.display = 'none';
-					}
-					if (toggleBtn) {
-						toggleBtn.textContent = 'Disable Camera';
+					if (this.video) {
+						this.video.srcObject = this.stream;
+						this.video.style.display = 'block';
 					}
 					
-					const recordBtn = document.getElementById('recordBtn') as HTMLButtonElement;
-					const startTimelapseBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
-					const stopTimelapseBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
-					const downloadTimelapseBtn = document.getElementById('downloadTimelapse') as HTMLButtonElement;
+					if (this.cameraPlaceholder) {
+						this.cameraPlaceholder.style.display = 'none';
+					}
 					
-					if (recordBtn) {
-						recordBtn.disabled = false;
+					if (this.toggleCameraBtn) {
+						this.toggleCameraBtn.textContent = 'Disable Camera';
+						this.toggleCameraBtn.className = this.toggleCameraBtn.className.replace('bg-zinc-900', 'bg-red-600');
 					}
-					if (startTimelapseBtn) {
-						startTimelapseBtn.disabled = false;
-					}
+					
+					this.cameraEnabled = true;
+					this.updateUI();
+					this.updateStatus('✅ Camera connected successfully!');
+					
 				} catch (error) {
-					console.error('Error accessing camera:', error);
-					alert('Could not access camera. Please check permissions.');
+					this.updateStatus('❌ Camera access denied. Please allow camera permissions.');
+					console.error('Camera access error:', error);
 				}
 			} else {
-				this.cameraStream.getTracks().forEach(track => track.stop());
-				this.cameraStream = null;
-				
-				if (video) {
-					video.style.display = 'none';
-				}
-				if (placeholder) {
-					placeholder.style.display = 'flex';
-				}
-				if (toggleBtn) {
-					toggleBtn.textContent = 'Enable Camera';
+				// Disable camera
+				if (this.stream) {
+					this.stream.getTracks().forEach(track => track.stop());
+					this.stream = null;
 				}
 				
-				const recordBtn = document.getElementById('recordBtn') as HTMLButtonElement;
-				const startTimelapseBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
-				const stopTimelapseBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
-				const downloadTimelapseBtn = document.getElementById('downloadTimelapse') as HTMLButtonElement;
-				
-				if (recordBtn) {
-					recordBtn.disabled = true;
-					recordBtn.textContent = 'Record';
-				}
-				if (startTimelapseBtn) {
-					startTimelapseBtn.disabled = true;
-				}
-				if (stopTimelapseBtn) {
-					stopTimelapseBtn.disabled = true;
+				if (this.video) {
+					this.video.style.display = 'none';
 				}
 				
-				// Stop any ongoing timelapse
-				if (this.isTimelapseRecording) {
-					this.stopTimelapse();
+				if (this.cameraPlaceholder) {
+					this.cameraPlaceholder.style.display = 'flex';
 				}
 				
-				this.isRecording = false;
+				if (this.toggleCameraBtn) {
+					this.toggleCameraBtn.textContent = 'Enable Camera';
+					this.toggleCameraBtn.className = this.toggleCameraBtn.className.replace('bg-red-600', 'bg-zinc-900');
+				}
+				
+				this.cameraEnabled = false;
+				
+				// Stop recording if active
+				if (this.isRecording) {
+					this.stopRecording();
+				}
+				
+				this.updateUI();
+				this.updateStatus('📷 Camera disabled');
 			}
 		}
 
-		private toggleRecording() {
-			const recordBtn = document.getElementById('recordBtn');
+		private startRecording() {
+			if (this.isRecording || !this.cameraEnabled) return;
+
+			this.isRecording = true;
+			this.frames = [];
+			const interval = this.intervalSlider ? parseInt(this.intervalSlider.value) : 1000;
+
+			if (this.video && this.ctx) {
+				this.canvas.width = this.video.videoWidth;
+				this.canvas.height = this.video.videoHeight;
+
+				this.captureInterval = window.setInterval(() => {
+					this.captureFrame();
+				}, interval);
+
+				this.updateUI();
+				this.updateStatus(`🎬 Recording started! Capturing every ${(interval/1000).toFixed(1)}s`);
+			}
+		}
+
+		private captureFrame() {
+			if (!this.isRecording || !this.ctx || !this.video) return;
+
+			this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+			const frameData = this.canvas.toDataURL('image/jpeg', 0.8);
+			this.frames.push(frameData);
 			
-			if (!this.isRecording) {
-				this.isRecording = true;
-				if (recordBtn) {
-					recordBtn.textContent = 'Stop Recording';
-					recordBtn.className = recordBtn.className.replace('bg-red-600', 'bg-gray-600');
-				}
-				// Here you would implement actual recording functionality
-				console.log('Recording started');
-			} else {
-				this.isRecording = false;
-				if (recordBtn) {
-					recordBtn.textContent = 'Record';
-					recordBtn.className = recordBtn.className.replace('bg-gray-600', 'bg-red-600');
-				}
-				console.log('Recording stopped');
+			// Update start button text with frame count
+			if (this.startBtn) {
+				this.startBtn.textContent = `🔴 Recording... (${this.frames.length} frames)`;
 			}
+			
+			this.updateStatus(`📸 Recording... ${this.frames.length} frames captured`);
 		}
 
-		private async startTimelapse() {
-			if (!this.cameraStream) {
-				alert('Please enable camera first');
+		private async stopRecording() {
+			if (!this.isRecording) return;
+
+			this.isRecording = false;
+			if (this.captureInterval) {
+				clearInterval(this.captureInterval);
+			}
+
+			if (this.frames.length === 0) {
+				this.updateStatus('⚠️ No frames captured. Try recording for a longer duration.');
+				this.updateUI();
 				return;
 			}
 
-			const video = document.getElementById('cameraFeed') as HTMLVideoElement;
-			if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
-				alert('Camera not ready. Please wait for camera to initialize.');
-				return;
-			}
-
-			this.timelapseFrames = [];
-			this.isTimelapseRecording = true;
-
-			// Update button states
-			const startBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
-			const stopBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
-			
-			if (startBtn) {
-				startBtn.disabled = true;
-				startBtn.textContent = '🔴 Recording...';
-			}
-			if (stopBtn) {
-				stopBtn.disabled = false;
-			}
-
-			// Set canvas dimensions
-			this.canvas.width = video.videoWidth;
-			this.canvas.height = video.videoHeight;
-
-			console.log(`Starting timelapse recording at ${this.canvas.width}x${this.canvas.height}, interval: ${this.captureIntervalMs}ms`);
-
-			// Capture frames at specified interval
-			this.timelapseInterval = setInterval(() => {
-				if (!this.isTimelapseRecording || !this.ctx) return;
-				
-				try {
-					// Ensure canvas dimensions match video
-					if (this.canvas.width !== video.videoWidth || this.canvas.height !== video.videoHeight) {
-						this.canvas.width = video.videoWidth;
-						this.canvas.height = video.videoHeight;
-					}
-					
-					this.ctx.drawImage(video, 0, 0, this.canvas.width, this.canvas.height);
-					
-					// Convert to base64 image data
-					const frameData = this.canvas.toDataURL("image/jpeg", 0.8);
-					this.timelapseFrames.push(frameData);
-					
-					// Update button text with frame count
-					if (startBtn) {
-						startBtn.textContent = `🔴 Recording... (${this.timelapseFrames.length} frames)`;
-					}
-					
-					console.log(`Captured frame ${this.timelapseFrames.length}`);
-				} catch (error) {
-					console.error('Error capturing frame:', error);
-				}
-			}, this.captureIntervalMs) as any;
-
-			console.log('Timelapse recording started');
+			this.updateStatus('⏳ Processing time-lapse video...');
+			await this.createTimeLapse();
+			this.updateUI();
 		}
 
-		private async stopTimelapse() {
-			if (!this.isTimelapseRecording) return;
+		private async createTimeLapse(): Promise<void> {
+			return new Promise((resolve) => {
+				const fps = this.speedSlider ? parseInt(this.speedSlider.value) : 30;
+				const frameDuration = 1000 / fps;
 
-			this.isTimelapseRecording = false;
-			
-			if (this.timelapseInterval) {
-				clearInterval(this.timelapseInterval);
-				this.timelapseInterval = null;
-			}
-
-			// Update button states
-			const startBtn = document.getElementById('startTimelapse') as HTMLButtonElement;
-			const stopBtn = document.getElementById('stopTimelapse') as HTMLButtonElement;
-			
-			if (startBtn) {
-				startBtn.disabled = false;
-				startBtn.textContent = 'Start Timelapse';
-			}
-			if (stopBtn) {
-				stopBtn.disabled = true;
-			}
-
-			console.log(`Stopping timelapse with ${this.timelapseFrames.length} frames`);
-
-			if (this.timelapseFrames.length === 0) {
-				alert('No frames captured. Try recording for a longer duration.');
-				return;
-			}
-
-			// Create timelapse video
-			await this.createAdvancedTimelapse();
-			this.timelapseFrames = [];
-		}
-
-		private async createAdvancedTimelapse() {
-			try {
 				if (!this.ctx) {
-					throw new Error('Canvas context not available');
+					resolve();
+					return;
 				}
 
-				console.log('Creating advanced timelapse video...');
-
-				// Create a video stream from canvas
-				const stream = this.canvas.captureStream(this.playbackFps);
-				const mediaRecorder = new MediaRecorder(stream, {
+				const mediaRecorder = new MediaRecorder(this.canvas.captureStream(fps), {
 					mimeType: 'video/webm'
 				});
 
 				const chunks: BlobPart[] = [];
-				
-				return new Promise<void>((resolve, reject) => {
-					mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-					mediaRecorder.onstop = () => {
-						try {
-							const blob = new Blob(chunks, { type: 'video/webm' });
-							const url = URL.createObjectURL(blob);
-							
-							const recording = {
-								id: Date.now(),
-								url: url,
-								blob: blob,
-								timestamp: new Date(),
-								frameCount: this.timelapseFrames.length,
-								fps: this.playbackFps,
-								duration: (this.timelapseFrames.length / this.playbackFps).toFixed(1),
-								interval: this.captureIntervalMs
-							};
-
-							this.recordings.unshift(recording);
-							this.updateRecordingsList();
-							this.updateDownloadButton();
-							
-							console.log(`Timelapse created: ${this.timelapseFrames.length} frames at ${this.playbackFps}fps`);
-							alert(`✨ Timelapse created! ${this.timelapseFrames.length} frames at ${this.playbackFps}fps (${recording.duration}s)`);
-							resolve();
-						} catch (error) {
-							reject(error);
-						}
+				mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+				mediaRecorder.onstop = () => {
+					const blob = new Blob(chunks, { type: 'video/webm' });
+					const url = URL.createObjectURL(blob);
+					
+					const recording: Recording = {
+						id: Date.now(),
+						url: url,
+						blob: blob,
+						timestamp: new Date(),
+						frameCount: this.frames.length,
+						fps: fps,
+						duration: (this.frames.length / fps).toFixed(1)
 					};
 
-					mediaRecorder.onerror = (e) => reject(e);
-					mediaRecorder.start();
+					this.recordings.unshift(recording);
+					this.updateRecordingsList();
+					this.updateStatus(`✨ Time-lapse created! ${this.frames.length} frames at ${fps}fps`);
+					resolve();
+				};
 
-					// Play through all frames to create the video
-					let frameIndex = 0;
-					const frameDuration = 1000 / this.playbackFps;
+				mediaRecorder.start();
 
-					const playFrames = () => {
-						if (frameIndex < this.timelapseFrames.length && this.ctx) {
-							const img = new Image();
-							img.onload = () => {
-								if (this.ctx) {
-									this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-									this.ctx.drawImage(img, 0, 0);
-									frameIndex++;
-									setTimeout(playFrames, frameDuration);
-								}
-							};
-							img.onerror = () => {
+				let frameIndex = 0;
+				const playFrames = () => {
+					if (frameIndex < this.frames.length && this.ctx) {
+						const img = new Image();
+						img.onload = () => {
+							if (this.ctx) {
+								this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+								this.ctx.drawImage(img, 0, 0);
 								frameIndex++;
 								setTimeout(playFrames, frameDuration);
-							};
-							img.src = this.timelapseFrames[frameIndex];
-						} else {
-							mediaRecorder.stop();
-						}
-					};
+							}
+						};
+						img.src = this.frames[frameIndex];
+					} else {
+						mediaRecorder.stop();
+					}
+				};
 
-					setTimeout(playFrames, 100);
-				});
-
-			} catch (error) {
-				console.error('Error creating advanced timelapse:', error);
-				alert(`Error creating timelapse: ${error instanceof Error ? error.message : 'Unknown error'}`);
-			}
+				setTimeout(playFrames, 100);
+			});
 		}
 
 		private updateRecordingsList() {
-			const recordingsList = document.getElementById('recordingsList');
-			if (!recordingsList) return;
+			if (!this.recordingsList) return;
 
 			if (this.recordings.length === 0) {
-				recordingsList.innerHTML = `
+				this.recordingsList.innerHTML = `
 					<p class="text-center text-black/60 py-8">
 						No recordings yet. Start your first time-lapse above! 🎥
 					</p>
@@ -726,23 +522,23 @@ const t = useTranslations(lang);
 				return;
 			}
 
-			recordingsList.innerHTML = this.recordings.map(recording => `
+			this.recordingsList.innerHTML = this.recordings.map(recording => `
 				<div class="flex items-center gap-4 p-4 bg-white/50 rounded-lg border border-gray-200">
 					<video class="w-20 h-15 rounded object-cover" src="${recording.url}" muted loop autoplay></video>
 					<div class="flex-1">
 						<div class="font-semibold text-black">Time-lapse ${recording.id}</div>
 						<div class="text-sm text-black/60">
 							${recording.frameCount} frames • ${recording.fps}fps • ${recording.duration}s<br>
-							Interval: ${(recording.interval/1000).toFixed(1)}s • ${recording.timestamp.toLocaleString()}
+							Created: ${recording.timestamp.toLocaleString()}
 						</div>
 					</div>
 					<div class="flex gap-2">
-						<button onclick="focusDesk.downloadRecording(${recording.id})" 
-								class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-gray-500 hover:text-black">
+						<button onclick="timeLapse.downloadRecording(${recording.id})" 
+								class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-orange-100 hover:text-black">
 							💾 Download
 						</button>
-						<button onclick="focusDesk.playRecording(${recording.id})" 
-								class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-gray-500 hover:text-black">
+						<button onclick="timeLapse.playRecording(${recording.id})" 
+								class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-orange-100 hover:text-black">
 							▶️ Play
 						</button>
 					</div>
@@ -750,21 +546,8 @@ const t = useTranslations(lang);
 			`).join('');
 		}
 
-		private updateDownloadButton() {
-			const downloadBtn = document.getElementById('downloadTimelapse') as HTMLButtonElement;
-			if (downloadBtn) {
-				downloadBtn.disabled = this.recordings.length === 0;
-			}
-		}
-
-		private downloadLatest() {
-			if (this.recordings.length > 0) {
-				this.downloadRecording(this.recordings[0].id);
-			}
-		}
-
-		private downloadRecording(id: number) {
-			const recording = this.recordings.find(r => r.id === id);
+		public downloadRecording(id: number) {
+			const recording = this.recordings.find((r: Recording) => r.id === id);
 			if (!recording) return;
 
 			const a = document.createElement('a');
@@ -775,8 +558,8 @@ const t = useTranslations(lang);
 			document.body.removeChild(a);
 		}
 
-		private playRecording(id: number) {
-			const recording = this.recordings.find(r => r.id === id);
+		public playRecording(id: number) {
+			const recording = this.recordings.find((r: Recording) => r.id === id);
 			if (!recording) return;
 
 			const modal = document.createElement('div');
@@ -807,50 +590,45 @@ const t = useTranslations(lang);
 			});
 		}
 
-		private loadStats() {
-			// Load stats from localStorage or set defaults
-			const stats = {
-				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0'),
-				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0'),
-				currentStreak: parseInt(localStorage.getItem('focusDesk_currentStreak') || '0')
-			};
-
-			this.updateStatsDisplay(stats);
+		private downloadLatest() {
+			if (this.recordings.length > 0) {
+				this.downloadRecording(this.recordings[0].id);
+			}
 		}
 
-		private incrementStats() {
-			const currentStats = {
-				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0') + 1,
-				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0') + 25,
-				currentStreak: parseInt(localStorage.getItem('focusDesk_currentStreak') || '0') + 1
-			};
-
-			// Save to localStorage
-			localStorage.setItem('focusDesk_sessionsCompleted', currentStats.sessionsCompleted.toString());
-			localStorage.setItem('focusDesk_totalFocusTime', currentStats.totalFocusTime.toString());
-			localStorage.setItem('focusDesk_currentStreak', currentStats.currentStreak.toString());
-
-			this.updateStatsDisplay(currentStats);
+		private updateUI() {
+			if (this.toggleCameraBtn) {
+				this.toggleCameraBtn.disabled = false;
+			}
+			
+			if (this.startBtn) {
+				this.startBtn.disabled = this.isRecording || !this.cameraEnabled;
+				if (!this.isRecording) {
+					this.startBtn.textContent = '▶ Start Timelapse';
+				}
+			}
+			
+			if (this.stopBtn) {
+				this.stopBtn.disabled = !this.isRecording;
+			}
+			
+			if (this.downloadBtn) {
+				this.downloadBtn.disabled = this.recordings.length === 0;
+			}
 		}
 
-		private updateStatsDisplay(stats: any) {
-			const sessionsElement = document.getElementById('sessionsCompleted');
-			const focusTimeElement = document.getElementById('totalFocusTime');
-			const streakElement = document.getElementById('currentStreak');
-
-			if (sessionsElement) sessionsElement.textContent = stats.sessionsCompleted.toString();
-			if (focusTimeElement) focusTimeElement.textContent = `${stats.totalFocusTime}m`;
-			if (streakElement) streakElement.textContent = stats.currentStreak.toString();
+		private updateStatus(message: string) {
+			// You can add a status element if needed, or just console log for now
+			console.log(message);
+			
+			// If you have a status element, update it here
+			// const statusEl = document.getElementById('status');
+			// if (statusEl) statusEl.textContent = message;
 		}
 	}
 
 	// Initialize when DOM is loaded
 	document.addEventListener('DOMContentLoaded', () => {
-		(window as any).focusDesk = new FocusDesk();
-		
-		// Request notification permission
-		if ('Notification' in window && Notification.permission === 'default') {
-			Notification.requestPermission();
-		}
+		(window as any).timeLapse = new TimeLapseRecorder();
 	});
 </script>
