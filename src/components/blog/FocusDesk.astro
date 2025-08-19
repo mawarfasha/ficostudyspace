@@ -627,8 +627,184 @@ const t = useTranslations(lang);
 		}
 	}
 
+	class FocusDesk {
+		private timer: number | null = null;
+		private timeRemaining: number = 25 * 60; // 25 minutes in seconds
+		private isRunning: boolean = false;
+
+		constructor() {
+			this.initializeElements();
+			this.setupEventListeners();
+			this.loadStats();
+		}
+
+		private initializeElements() {
+			this.updateTimerDisplay();
+		}
+
+		private setupEventListeners() {
+			// Timer controls
+			document.getElementById('startBtn')?.addEventListener('click', () => this.startTimer());
+			document.getElementById('pauseBtn')?.addEventListener('click', () => this.pauseTimer());
+			document.getElementById('resetBtn')?.addEventListener('click', () => this.resetTimer());
+
+			// Timer presets
+			document.querySelectorAll('.preset-btn').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const minutes = parseInt((e.target as HTMLElement).dataset.minutes || '25');
+					this.setTimer(minutes);
+				});
+			});
+
+			// Notes character count
+			const notesTextarea = document.querySelector('textarea');
+			notesTextarea?.addEventListener('input', () => {
+				const charCount = document.getElementById('charCount');
+				if (charCount) {
+					charCount.textContent = `${notesTextarea.value.length} characters`;
+				}
+			});
+		}
+
+		private setTimer(minutes: number) {
+			this.timeRemaining = minutes * 60;
+			this.updateTimerDisplay();
+			if (this.isRunning) {
+				this.pauseTimer();
+			}
+		}
+
+		private startTimer() {
+			if (!this.isRunning) {
+				this.isRunning = true;
+				this.timer = window.setInterval(() => {
+					this.timeRemaining--;
+					this.updateTimerDisplay();
+					
+					if (this.timeRemaining <= 0) {
+						this.completeSession();
+					}
+				}, 1000);
+
+				this.updateControls();
+				this.updateTimerStatus('Focus time! Stay concentrated.');
+			}
+		}
+
+		private pauseTimer() {
+			if (this.isRunning && this.timer) {
+				this.isRunning = false;
+				clearInterval(this.timer);
+				this.timer = null;
+				this.updateControls();
+				this.updateTimerStatus('Timer paused');
+			}
+		}
+
+		private resetTimer() {
+			if (this.timer) {
+				clearInterval(this.timer);
+				this.timer = null;
+			}
+			this.isRunning = false;
+			this.timeRemaining = 25 * 60;
+			this.updateTimerDisplay();
+			this.updateControls();
+			this.updateTimerStatus('Ready to start');
+		}
+
+		private completeSession() {
+			if (this.timer) {
+				clearInterval(this.timer);
+				this.timer = null;
+			}
+			this.isRunning = false;
+			this.updateControls();
+			this.updateTimerStatus('Session completed! Great work!');
+			this.incrementStats();
+			
+			// Show completion notification
+			if (Notification.permission === 'granted') {
+				new Notification('Focus Session Complete!', {
+					body: 'Great job! You completed your focus session.',
+					icon: '/favicon.ico'
+				});
+			}
+		}
+
+		private updateTimerDisplay() {
+			const minutes = Math.floor(this.timeRemaining / 60);
+			const seconds = this.timeRemaining % 60;
+			const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+			
+			const timerDisplay = document.getElementById('timerDisplay');
+			if (timerDisplay) {
+				timerDisplay.textContent = display;
+			}
+		}
+
+		private updateTimerStatus(status: string) {
+			const statusElement = document.getElementById('timerStatus');
+			if (statusElement) {
+				statusElement.textContent = status;
+			}
+		}
+
+		private updateControls() {
+			const startBtn = document.getElementById('startBtn') as HTMLButtonElement;
+			const pauseBtn = document.getElementById('pauseBtn') as HTMLButtonElement;
+			
+			if (startBtn && pauseBtn) {
+				startBtn.disabled = this.isRunning;
+				pauseBtn.disabled = !this.isRunning;
+			}
+		}
+
+		private loadStats() {
+			// Load stats from localStorage or set defaults
+			const stats = {
+				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0'),
+				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0'),
+				currentStreak: parseInt(localStorage.getItem('focusDesk_currentStreak') || '0')
+			};
+
+			this.updateStatsDisplay(stats);
+		}
+
+		private incrementStats() {
+			const currentStats = {
+				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0') + 1,
+				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0') + 25,
+				currentStreak: parseInt(localStorage.getItem('focusDesk_currentStreak') || '0') + 1
+			};
+
+			// Save to localStorage
+			localStorage.setItem('focusDesk_sessionsCompleted', currentStats.sessionsCompleted.toString());
+			localStorage.setItem('focusDesk_totalFocusTime', currentStats.totalFocusTime.toString());
+			localStorage.setItem('focusDesk_currentStreak', currentStats.currentStreak.toString());
+
+			this.updateStatsDisplay(currentStats);
+		}
+
+		private updateStatsDisplay(stats: any) {
+			const sessionsElement = document.getElementById('sessionsCompleted');
+			const focusTimeElement = document.getElementById('totalFocusTime');
+			const streakElement = document.getElementById('currentStreak');
+
+			if (sessionsElement) sessionsElement.textContent = stats.sessionsCompleted.toString();
+			if (focusTimeElement) focusTimeElement.textContent = `${stats.totalFocusTime}m`;
+			if (streakElement) streakElement.textContent = stats.currentStreak.toString();
+		}
+	}
+
 	// Initialize when DOM is loaded
 	document.addEventListener('DOMContentLoaded', () => {
 		(window as any).timeLapse = new TimeLapseRecorder();
+		(window as any).focusDesk = new FocusDesk();
+		
+		// Request notification permission
+		if ('Notification' in window && Notification.permission === 'default') {
+			Notification.requestPermission();
+		}
 	});
 </script>
