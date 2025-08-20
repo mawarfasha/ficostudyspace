@@ -9,6 +9,9 @@ export default defineConfig({
 	scanner: {
 		exclude: [/^\/cdn-cgi\//],
 	},
+	discovery: {
+		sitemap: false, // Disable sitemap crawling since it's not available
+	},
 	ci: {
 		budget: 30, // Temporarily lowered for development - will improve performance later
 		buildStatic: true,
