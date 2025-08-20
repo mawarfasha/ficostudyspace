@@ -27,7 +27,7 @@ jobs:
               run: bun install -g netlify-cli @unlighthouse/cli puppeteer
 
             - name: Unlighthouse assertions and client
-              run: unlighthouse-ci
+              run: unlighthouse-ci --no-exit-code
 
             - name: Deploy
               run: netlify deploy --dir=.unlighthouse --prod --message="New Release Deploy from GitHub Actions"

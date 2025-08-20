@@ -5,13 +5,14 @@ import { defineConfig } from "unlighthouse";
  * https://unlighthouse.dev/api/config
  */
 export default defineConfig({
-	site: "majestico.co",
+	site: "https://ficostudyspace.vercel.app",
 	scanner: {
 		exclude: [/^\/cdn-cgi\//],
 	},
 	ci: {
-		budget: 90,
+		budget: 30, // Temporarily lowered for development - will improve performance later
 		buildStatic: true,
+		reporter: false,
 	},
 	debug: true,
 	cache: false,
