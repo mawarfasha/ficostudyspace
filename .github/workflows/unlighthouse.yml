@@ -24,20 +24,7 @@ jobs:
               run: bun install
 
             - name: Install Global dependencies
-              run: bun install -g vercel @unlighthouse/cli puppeteer
+              run: bun install -g @unlighthouse/cli puppeteer
 
             - name: Unlighthouse assertions and client
               run: unlighthouse-ci --no-exit-code
-
-            - name: Setup Vercel project config
-              run: |
-                  mkdir -p .unlighthouse/.vercel
-                  echo '{"orgId":"${{ secrets.VERCEL_ORG_ID }}","projectId":"${{ secrets.VERCEL_PROJECT_ID }}"}' > .unlighthouse/.vercel/project.json
-              shell: bash
-
-            - name: Deploy reports to Vercel
-              run: |
-                  cd .unlighthouse
-                  vercel --prod --yes --token "$VERCEL_TOKEN"
-              env:
-                  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
