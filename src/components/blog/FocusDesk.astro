@@ -814,24 +814,51 @@ const t = useTranslations(lang);
 
 		updateUI() {
 			console.log('updateUI called');
+			
+			// Enable camera toggle button - this should always be enabled
 			if (this.toggleCameraBtn) {
 				this.toggleCameraBtn.disabled = false;
+				this.toggleCameraBtn.removeAttribute('disabled');
 				console.log('Camera button enabled');
 			}
 			
+			// Enable/disable timelapse start button
 			if (this.startBtn) {
-				this.startBtn.disabled = this.isRecording || !this.cameraEnabled;
-				if (!this.isRecording) {
-					this.startBtn.textContent = '▶ Start Timelapse';
+				const shouldDisable = this.isRecording || !this.cameraEnabled;
+				this.startBtn.disabled = shouldDisable;
+				if (shouldDisable) {
+					this.startBtn.setAttribute('disabled', 'true');
+				} else {
+					this.startBtn.removeAttribute('disabled');
 				}
+				if (!this.isRecording) {
+					this.startBtn.textContent = '▶ Start';
+				}
+				console.log('Start button state - disabled:', shouldDisable);
 			}
 			
+			// Enable/disable timelapse stop button
 			if (this.stopBtn) {
-				this.stopBtn.disabled = !this.isRecording;
+				const shouldDisable = !this.isRecording;
+				this.stopBtn.disabled = shouldDisable;
+				if (shouldDisable) {
+					this.stopBtn.setAttribute('disabled', 'true');
+				} else {
+					this.stopBtn.removeAttribute('disabled');
+				}
+				console.log('Stop button state - disabled:', shouldDisable);
 			}
 			
+			// Enable/disable download button
 			if (this.downloadBtn) {
-				this.downloadBtn.disabled = this.recordings.length === 0;
+				const shouldDisable = this.recordings.length === 0;
+				this.downloadBtn.disabled = shouldDisable;
+				if (shouldDisable) {
+					this.downloadBtn.setAttribute('disabled', 'true');
+				} else {
+					this.downloadBtn.removeAttribute('disabled');
+				}
+				console.log('Download button state - disabled:', shouldDisable);
 			}
 		}
 
