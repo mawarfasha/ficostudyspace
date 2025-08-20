@@ -1,22 +1,22 @@
-# [Mintaka](https://mintaka.majestico.co)
+# [Fico Study Space](https://ficostudyspace.com)
 
-> [!IMPORTANT]
-> Currently this theme only works with the premium version of GSAP, the steps to use the standard version will be available in the future.
+> [!NOTE]
+> A productivity-focused web application featuring timelapse recording and focus timer functionality to help students and professionals stay accountable and improve concentration.
 
 <a href="https://astro.build/">![Astro](.github/images/astro-icon.png)</a>
 <a href="https://tailwindcss.com/">![Tailwind](.github/images/tailwind-icon.png)</a>
 <a href="https://gsap.com/">![Gsap](.github/images/gsap.png)</a>
 
-Mintaka is a template made with [Astro](https://astro.build), [Tailwind](https://tailwindcss.com/) and [Gsap](https://gsap.com/)
+Fico Study Space is built with [Astro](https://astro.build), [Tailwind](https://tailwindcss.com/) and [GSAP](https://gsap.com/)
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/majesticooss/mintaka)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mawarfasha/ficostudyspace)
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/majesticooss/mintaka)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/mawarfasha/ficostudyspace)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/majesticooss/mintaka)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mawarfasha/ficostudyspace)
 
 
-### [🧪 Site preview →](https://mintaka.majestico.co)
+### [🧪 Live Demo →](https://ficostudyspace.com)
 
 ### [🧑‍🚀 Astro website →](https://astro.build/)
 

@@ -4,9 +4,9 @@
 	"display": "standalone",
 	"scope": "/",
 	"start_url": "/",
-	"description": "Web Agency Leading in Performant Web Design Solutions - Mintaka Studio",
-	"name": "Mintaka",
-	"short_name": "Mintaka",
+	"description": "Fico Study Space - A productivity platform with focus timer and timelapse recording for enhanced focus and accountability",
+	"name": "Fico Study Space",
+	"short_name": "Fico Study",
 	"icons": [
 		{
 			"src": "/pwa-64x64.png",

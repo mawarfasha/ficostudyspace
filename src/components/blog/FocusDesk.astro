@@ -31,10 +31,10 @@ const t = useTranslations(lang);
 			<div class="lg:col-span-2 space-y-6">
 				<!-- Large Camera Feed Section -->
 				<div class="bg-white/90 backdrop-blur-md rounded-lg p-6 border border-gray/20">
-					<h3 class="text-2xl font-semibold mb-6 text-black text-center">Focus Monitor</h3>
+					<h3 class="text-xl font-semibold mb-4 text-black text-center">Focus Monitor</h3>
 					
 					<!-- Camera Display - Much Larger -->
-					<div class="relative bg-black/50 rounded-lg overflow-hidden mb-6 aspect-video h-96">
+					<div class="relative bg-black/50 rounded-lg overflow-hidden mb-4 aspect-video h-96">
 						<video id="cameraFeed" autoplay muted class="w-full h-full object-cover camera-mirrored"></video>
 						<div id="cameraPlaceholder" class="absolute inset-0 flex items-center justify-center text-white/60">
 							<div class="text-center">
@@ -46,48 +46,48 @@ const t = useTranslations(lang);
 						</div>
 					</div>
 
-					<!-- Camera Controls -->
-                     
-					<div class="flex justify-center mb-4">
-						<button id="toggleCamera" class="squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium" data-cursor-hover data-cursor-parallax disabled>
-						Enable Cameraz
-					</button>
-					</div>
-					
-					<!-- Timelapse Controls -->
-					<div class="space-y-4 mb-4">
-						<div>
-							<label class="block text-sm font-medium text-black/80 mb-2">Capture Interval</label>
-							<div class="flex items-center gap-3">
-								<input type="range" id="intervalSlider" min="100" max="5000" value="1000" 
-									class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-								<span id="intervalValue" class="text-sm font-medium text-black min-w-[60px]">1.0s</span>
+					<!-- Compact Camera & Timelapse Controls -->
+					<div class="space-y-6 mb-3">
+						<!-- Camera Toggle -->
+						<button id="toggleCamera" class="w-full squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-4 text-sm font-medium" data-cursor-hover data-cursor-parallax disabled>
+						Enable Camera
+						</button>
+						
+						<!-- Timelapse Settings (Compact) -->
+						<div class="grid grid-cols-2 gap-3 text-xs mb-6">
+							<div>
+								<label class="block text-black/70 mb-1">Interval</label>
+								<div class="flex items-center gap-2">
+									<input type="range" id="intervalSlider" min="100" max="5000" value="1000" 
+										class="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+									<span id="intervalValue" class="text-xs text-black min-w-[35px]">1.0s</span>
+								</div>
+							</div>
+							<div>
+								<label class="block text-black/70 mb-1">Speed</label>
+								<div class="flex items-center gap-2">
+									<input type="range" id="speedSlider" min="5" max="60" value="30" 
+										class="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+									<span id="speedValue" class="text-xs text-black min-w-[35px]">30fps</span>
+								</div>
 							</div>
 						</div>
-						<div>
-							<label class="block text-sm font-medium text-black/80 mb-2">Playback Speed</label>
-							<div class="flex items-center gap-3">
-								<input type="range" id="speedSlider" min="5" max="60" value="30" 
-									class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-								<span id="speedValue" class="text-sm font-medium text-black min-w-[60px]">30 FPS</span>
-							</div>
+						
+						<!-- Compact Timelapse Controls -->
+						<div class="grid grid-cols-3 gap-2">
+							<button id="startTimelapse" class="squircle-bg rounded-lg bg-green-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-3 text-sm font-medium" data-cursor-hover data-cursor-parallax disabled>
+								▶ Start
+							</button>
+							<button id="stopTimelapse" class="squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-3 text-sm font-medium" data-cursor-hover data-cursor-parallax disabled>
+								⏹ Stop
+							</button>
+							<button id="downloadTimelapse" class="squircle-bg rounded-lg bg-blue-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-3 text-sm font-medium" disabled>
+								Download
+							</button>
 						</div>
 					</div>
 					
-					<div class="grid grid-cols-2 gap-4 mb-4">
-						<button id="startTimelapse" class="squircle-bg rounded-lg bg-green-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium" data-cursor-hover data-cursor-parallax disabled>
-							▶ Start Timelapse
-						</button>
-						<button id="stopTimelapse" class="squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium" data-cursor-hover data-cursor-parallax disabled>
-							⏹ Stop Timelapse
-						</button>
-					</div>
-					
-					<button id="downloadTimelapse" class="w-full squircle-bg rounded-lg bg-blue-600 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-6 text-lg font-medium mb-4" disabled>
-						Download Latest
-					</button>
-					
-					<p class="text-sm text-black/50 text-center">Monitor your focus and posture during study sessions</p>
+					<p class="text-xs text-black/40 text-center">Monitor your focus during study sessions</p>
 				</div>
 
 				<!-- Session Notes -->
@@ -134,7 +134,17 @@ const t = useTranslations(lang);
 					
 					<!-- Timer Display -->
 					<div class="text-center mb-6">
-						<div class="text-4xl font-mono font-bold text-black mb-2" id="timerDisplay">25:00</div>
+						<div class="relative inline-block mb-2">
+							<div class="text-4xl font-mono font-bold text-black" id="timerDisplay">25:00</div>
+							<div class="absolute top-1/2 -translate-y-1/2 flex flex-col gap-1" style="left: 100%; margin-left: 4px;">
+								<button id="timerUpBtn" class="w-4 h-3 flex items-center justify-center text-black hover:text-gray-600 transition-colors cursor-pointer" style="font-size: 6px;">
+									▲
+								</button>
+								<button id="timerDownBtn" class="w-4 h-3 flex items-center justify-center text-black hover:text-gray-600 transition-colors cursor-pointer" style="font-size: 6px;">
+									▼
+								</button>
+							</div>
+						</div>
 						<div class="text-sm text-black/60" id="timerStatus">Ready to start</div>
 					</div>
 
@@ -162,6 +172,12 @@ const t = useTranslations(lang);
 						<button id="resetBtn" class="w-full squircle-bg rounded-lg bg-zinc-900 text-slate-200 transition-all hover:bg-slate-200 hover:text-black py-2 px-4" data-cursor-hover data-cursor-parallax>
 							Reset
 						</button>
+						<div class="text-xs text-black/60 text-center" style="margin-top: 1rem; margin-bottom: 0.3rem;">
+							Save current progress?
+						</div>
+						<button id="stopBtn" class="w-full squircle-bg rounded-lg bg-red-600 text-white transition-all hover:bg-slate-200 hover:text-black py-2 px-4" data-cursor-hover data-cursor-parallax disabled>
+							Stop & Save Progress
+						</button>
 					</div>
 				</div>
 
@@ -171,11 +187,11 @@ const t = useTranslations(lang);
 					<div class="space-y-4">
 						<div class="text-center">
 							<div class="text-2xl font-bold text-black" id="sessionsCompleted">0</div>
-							<div class="text-sm text-black/60">Sessions Completed</div>
+							<div class="text-sm text-black/60">Sessions Today</div>
 						</div>
 						<div class="text-center">
 							<div class="text-2xl font-bold text-black" id="totalFocusTime">0m</div>
-							<div class="text-sm text-black/60">Focus Time</div>
+							<div class="text-sm text-black/60">Focus Time Today</div>
 						</div>
 						<div class="text-center">
 							<div class="text-2xl font-bold text-black" id="currentStreak">0</div>
@@ -685,6 +701,8 @@ const t = useTranslations(lang);
 
 			this.recordingsList.innerHTML = this.recordings.map(recording => {
 				const hasVideo = recording.url ? true : false;
+				const isExpired = recording.isExpired || false;
+				
 				const videoElement = hasVideo 
 					? `<video class="w-20 h-15 rounded object-cover" src="${recording.url}" muted loop autoplay></video>`
 					: `<div class="w-20 h-15 rounded bg-gray-300 flex items-center justify-center">
@@ -711,15 +729,23 @@ const t = useTranslations(lang);
 						▶️ Not Available
 					</button>`;
 
+				// Determine the status message
+				let statusMessage = '';
+				if (isExpired) {
+					statusMessage = '<br><span class="text-red-600">⏰ Expired (older than 3 days)</span>';
+				} else if (!hasVideo) {
+					statusMessage = '<br><span class="text-orange-600">⚠️ Video not available (from previous session)</span>';
+				}
+
 				return `
-					<div class="flex items-center gap-4 p-4 bg-white/50 rounded-lg border border-gray-200">
+					<div class="flex items-center gap-4 p-4 bg-white/50 rounded-lg border border-gray-200 ${isExpired ? 'opacity-75' : ''}">
 						${videoElement}
 						<div class="flex-1">
 							<div class="font-semibold text-black">Time-lapse ${recording.id}</div>
 							<div class="text-sm text-black/60">
 								${recording.frameCount} frames • ${recording.fps}fps • ${recording.duration}s<br>
 								Created: ${recording.timestamp.toLocaleString()}
-								${!hasVideo ? '<br><span class="text-orange-600">⚠️ Video not available (from previous session)</span>' : ''}
+								${statusMessage}
 							</div>
 						</div>
 						<div class="flex gap-2">
@@ -832,14 +858,51 @@ const t = useTranslations(lang);
 				const savedRecordings = localStorage.getItem('focusDesk_recordings');
 				if (savedRecordings) {
 					const recordingsData = JSON.parse(savedRecordings);
-					// Note: We can't restore blob URLs, so we'll just show the metadata
-					this.recordings = recordingsData.map(data => ({
-						...data,
-						timestamp: new Date(data.timestamp),
-						url: null, // URL will be null for loaded recordings
-						blob: null // Blob will be null for loaded recordings
-					}));
+					const now = new Date();
+					const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
+					
+					// Filter out recordings older than 3 days and mark recent ones as expired if needed
+					const activeRecordings = [];
+					const expiredRecordings = [];
+					
+					recordingsData.forEach(data => {
+						const timestamp = new Date(data.timestamp);
+						const isExpired = timestamp < threeDaysAgo;
+						
+						const recording = {
+							...data,
+							timestamp: timestamp,
+							url: null, // URL will be null for loaded recordings
+							blob: null, // Blob will be null for loaded recordings
+							isExpired: isExpired
+						};
+						
+						if (isExpired) {
+							expiredRecordings.push(recording);
+						} else {
+							activeRecordings.push(recording);
+						}
+					});
+					
+					// Keep active recordings and show some expired ones for reference
+					this.recordings = [...activeRecordings, ...expiredRecordings.slice(0, 3)]; // Show max 3 expired
+					
+					// If we removed any expired recordings, update localStorage
+					if (expiredRecordings.length > 0) {
+						const recordingsToSave = activeRecordings.map(recording => ({
+							id: recording.id,
+							timestamp: recording.timestamp.toISOString(),
+							frameCount: recording.frameCount,
+							fps: recording.fps,
+							duration: recording.duration
+						}));
+						localStorage.setItem('focusDesk_recordings', JSON.stringify(recordingsToSave));
+						console.log(`Cleaned up ${expiredRecordings.length} expired recordings`);
+					}
+					
 					console.log('Loaded recordings from localStorage:', this.recordings.length);
+					console.log('Active recordings:', activeRecordings.length);
+					console.log('Showing expired recordings:', Math.min(expiredRecordings.length, 3));
 					this.updateRecordingsList();
 				}
 			} catch (error) {
@@ -864,6 +927,7 @@ const t = useTranslations(lang);
 			// Timer state
 			this.timer = null;
 			this.timeRemaining = 25 * 60; // 25 minutes in seconds
+			this.initialTimeSet = 25 * 60; // Track the initially set time
 			this.isRunning = false;
 
 			this.initializeElements();
@@ -879,11 +943,17 @@ const t = useTranslations(lang);
 			// Timer controls
 			const startBtn = document.getElementById('startBtn');
 			const pauseBtn = document.getElementById('pauseBtn');
+			const stopBtn = document.getElementById('stopBtn');
 			const resetBtn = document.getElementById('resetBtn');
+			const timerUpBtn = document.getElementById('timerUpBtn');
+			const timerDownBtn = document.getElementById('timerDownBtn');
 			
 			if (startBtn) startBtn.addEventListener('click', () => this.startTimer());
 			if (pauseBtn) pauseBtn.addEventListener('click', () => this.pauseTimer());
+			if (stopBtn) stopBtn.addEventListener('click', () => this.stopTimer());
 			if (resetBtn) resetBtn.addEventListener('click', () => this.resetTimer());
+			if (timerUpBtn) timerUpBtn.addEventListener('click', () => this.adjustTimer(5));
+			if (timerDownBtn) timerDownBtn.addEventListener('click', () => this.adjustTimer(-5));
 
 			// Timer presets
 			document.querySelectorAll('.preset-btn').forEach(btn => {
@@ -907,9 +977,18 @@ const t = useTranslations(lang);
 
 		setTimer(minutes) {
 			this.timeRemaining = minutes * 60;
+			this.initialTimeSet = minutes * 60; // Track the initially set time
 			this.updateTimerDisplay();
 			if (this.isRunning) {
 				this.pauseTimer();
+			}
+		}
+
+		adjustTimer(minuteChange) {
+			if (!this.isRunning) { // Only allow adjustment when timer is not running
+				const currentMinutes = Math.ceil(this.timeRemaining / 60);
+				const newMinutes = Math.max(5, currentMinutes + minuteChange); // Minimum 5 minutes
+				this.setTimer(newMinutes);
 			}
 		}
 
@@ -940,6 +1019,12 @@ const t = useTranslations(lang);
 			}
 		}
 
+		stopTimer() {
+			if (this.isRunning && this.timer) {
+				this.completeSession();
+			}
+		}
+
 		resetTimer() {
 			if (this.timer) {
 				clearInterval(this.timer);
@@ -947,6 +1032,7 @@ const t = useTranslations(lang);
 			}
 			this.isRunning = false;
 			this.timeRemaining = 25 * 60;
+			this.initialTimeSet = 25 * 60; // Reset initial time tracking
 			this.updateTimerDisplay();
 			this.updateControls();
 			this.updateTimerStatus('Ready to start');
@@ -959,15 +1045,24 @@ const t = useTranslations(lang);
 			}
 			this.isRunning = false;
 			this.updateControls();
-			this.updateTimerStatus('Session completed! Great work!');
-			this.incrementStats();
 			
-			// Show completion notification
-			if (Notification.permission === 'granted') {
-				new Notification('Focus Session Complete!', {
-					body: 'Great job! You completed your focus session.',
-					icon: '/favicon.ico'
-				});
+			// Check if session was completed (timer reached 0) or manually stopped
+			const wasCompleted = this.timeRemaining <= 0;
+			
+			if (wasCompleted) {
+				this.updateTimerStatus('Session completed! Great work! 🎉');
+				this.incrementStats();
+				
+				// Show completion notification
+				if (Notification.permission === 'granted') {
+					new Notification('Focus Session Complete!', {
+						body: 'Great job! You completed your focus session.',
+						icon: '/favicon.ico'
+					});
+				}
+			} else {
+				this.updateTimerStatus('Session ended early. Still counts as progress! 💪');
+				this.incrementStats(); // Still count partial sessions
 			}
 		}
 
@@ -992,16 +1087,26 @@ const t = useTranslations(lang);
 		updateControls() {
 			const startBtn = document.getElementById('startBtn');
 			const pauseBtn = document.getElementById('pauseBtn');
+			const stopBtn = document.getElementById('stopBtn');
 			
-			if (startBtn && pauseBtn) {
+			if (startBtn && pauseBtn && stopBtn) {
 				startBtn.disabled = this.isRunning;
 				pauseBtn.disabled = !this.isRunning;
+				stopBtn.disabled = !this.isRunning;
 			}
 		}
 
 		loadStats() {
 			const today = new Date().toDateString();
 			const lastActiveDate = localStorage.getItem('focusDesk_lastActiveDate');
+			
+			// Check if it's a new day and reset today's progress (but keep streak)
+			if (lastActiveDate && lastActiveDate !== today) {
+				// Reset today's progress for the new day
+				localStorage.removeItem('focusDesk_todayFocusTime');
+				localStorage.removeItem('focusDesk_todaySessions');
+				console.log('New day detected - reset today\'s progress');
+			}
 			
 			// Check if streak should be reset
 			let currentStreak = parseInt(localStorage.getItem('focusDesk_currentStreak') || '0');
@@ -1020,13 +1125,26 @@ const t = useTranslations(lang);
 
 			// Load stats from localStorage or set defaults
 			const stats = {
-				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0'),
-				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0'),
+				sessionsCompleted: this.getTodaySessions(), // Show today's sessions in the display
+				totalFocusTime: this.getTodayFocusTime(), // Show today's focus time
 				currentStreak: currentStreak,
 				todaySessions: this.getTodaySessions()
 			};
 
 			this.updateStatsDisplay(stats);
+		}
+
+		getTodayFocusTime() {
+			const today = new Date().toDateString();
+			const todayFocusData = localStorage.getItem('focusDesk_todayFocusTime');
+			
+			if (todayFocusData) {
+				const data = JSON.parse(todayFocusData);
+				if (data.date === today) {
+					return data.time;
+				}
+			}
+			return 0;
 		}
 
 		getTodaySessions() {
@@ -1046,11 +1164,21 @@ const t = useTranslations(lang);
 			const today = new Date().toDateString();
 			const lastActiveDate = localStorage.getItem('focusDesk_lastActiveDate');
 			
+			// Calculate actual focus time completed (in minutes)
+			const actualFocusTime = Math.ceil((this.initialTimeSet - this.timeRemaining) / 60);
+			
 			// Update today's sessions
 			const todaySessions = this.getTodaySessions() + 1;
 			localStorage.setItem('focusDesk_todaySessions', JSON.stringify({
 				date: today,
 				count: todaySessions
+			}));
+
+			// Update today's focus time
+			const todayFocusTime = this.getTodayFocusTime() + actualFocusTime;
+			localStorage.setItem('focusDesk_todayFocusTime', JSON.stringify({
+				date: today,
+				time: todayFocusTime
 			}));
 
 			// Handle streak logic
@@ -1076,22 +1204,30 @@ const t = useTranslations(lang);
 			}
 
 			const currentStats = {
-				sessionsCompleted: parseInt(localStorage.getItem('focusDesk_sessionsCompleted') || '0') + 1,
-				totalFocusTime: parseInt(localStorage.getItem('focusDesk_totalFocusTime') || '0') + 25,
+				sessionsCompleted: todaySessions, // Show today's sessions
+				totalFocusTime: todayFocusTime, // Show today's focus time
 				currentStreak: currentStreak,
 				todaySessions: todaySessions
 			};
 
-			// Save to localStorage
-			localStorage.setItem('focusDesk_sessionsCompleted', currentStats.sessionsCompleted.toString());
-			localStorage.setItem('focusDesk_totalFocusTime', currentStats.totalFocusTime.toString());
+			// Update global totals (for achievements and overall tracking)
+			const globalSessions = parseInt(localStorage.getItem('focusDesk_globalSessions') || '0') + 1;
+			const globalFocusTime = parseInt(localStorage.getItem('focusDesk_globalFocusTime') || '0') + actualFocusTime;
+			localStorage.setItem('focusDesk_globalSessions', globalSessions.toString());
+			localStorage.setItem('focusDesk_globalFocusTime', globalFocusTime.toString());
+
+			// Save other data to localStorage
 			localStorage.setItem('focusDesk_currentStreak', currentStats.currentStreak.toString());
 			localStorage.setItem('focusDesk_lastActiveDate', today);
 
 			this.updateStatsDisplay(currentStats);
 			
-			// Show achievement notifications
-			this.showAchievements(currentStats);
+			// Show achievement notifications based on global stats
+			this.showAchievements({
+				...currentStats,
+				sessionsCompleted: globalSessions,
+				totalFocusTime: globalFocusTime
+			});
 		}
 
 		showAchievements(stats) {

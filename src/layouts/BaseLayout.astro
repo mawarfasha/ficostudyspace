@@ -16,18 +16,18 @@ const { seo: seoProp } = Astro.props;
 
 const lang = getLangFromUrl(Astro.url);
 
-const shareImage = new URL("/images/meta/mintaka_share.gif", Astro.site).toString();
+const shareImage = new URL("/images/meta/fico_share.gif", Astro.site).toString();
 
 const defaultSeo: AstroSeoProps = {
 	title: "Fico Study Space",
 	description:
 		"A study desk-inspired website where you can record and view your own timelapses. With a built-in focus timer, it helps students and professionals stay accountable, reduce distractions, and improve focus.",
-	canonical: "https://mintaka.co",
+	canonical: "https://ficostudyspace.com",
 	openGraph: {
-		url: "https://mintaka.co",
+		url: "https://ficostudyspace.com",
 		title: "Fico Study Space",
 		description:
-			"Fico-Project is a self-initiated startup focused on web development and experimentation, aimed at personal growth.",
+			"Fico Study Space is a self-initiated project focused on productivity, focus tracking, and personal development through timelapses and study sessions.",
 		images: [
 			{
 				url: shareImage,
@@ -44,17 +44,17 @@ const defaultSeo: AstroSeoProps = {
 				type: "image/gif",
 			},
 		],
-		site_name: "Mintaka",
+		site_name: "Fico Study Space",
 	},
 	twitter: {
-		handle: "@mintakastudio",
-		site: "@mintakastudio",
+		handle: "@ficostudyspace",
+		site: "@ficostudyspace",
 		cardType: "summary_large_image",
 	},
 	additionalMetaTags: [
 		{
 			name: "publisher",
-			content: "Mintaka Studio",
+			content: "Fico Study Space",
 		},
 	],
 };
@@ -80,5 +80,46 @@ function cursorFollowerActive() {
 		<Navigation />
 		{cursorFollowerActive() && <BlobCursorFollower />}
 		<slot />
+		
+		<!-- Basic Security Script -->
+		<script>
+			// Disable right-click context menu
+			document.addEventListener('contextmenu', function(e) {
+				e.preventDefault();
+				return false;
+			});
+			
+			// Disable common developer shortcuts
+			document.addEventListener('keydown', function(e) {
+				// Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+				if (e.keyCode === 123 || 
+					(e.ctrlKey && e.shiftKey && e.keyCode === 73) ||
+					(e.ctrlKey && e.shiftKey && e.keyCode === 74) ||
+					(e.ctrlKey && e.keyCode === 85)) {
+					e.preventDefault();
+					return false;
+				}
+			});
+			
+			// Clear console periodically (basic deterrent)
+			setInterval(function() {
+				console.clear();
+			}, 1000);
+			
+			// Detect dev tools (basic detection)
+			let devtools = false;
+			setInterval(function() {
+				if (window.outerHeight - window.innerHeight > 200 || 
+					window.outerWidth - window.innerWidth > 200) {
+					if (!devtools) {
+						devtools = true;
+						console.log('Developer tools detected!');
+						// You could redirect or show a warning here
+					}
+				} else {
+					devtools = false;
+				}
+			}, 500);
+		</script>
 	</body>
 </html>
