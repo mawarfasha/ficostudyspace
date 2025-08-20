@@ -49,7 +49,7 @@ const t = useTranslations(lang);
 					<!-- Compact Camera & Timelapse Controls -->
 					<div class="space-y-6 mb-3">
 						<!-- Camera Toggle -->
-						<button id="toggleCamera" class="w-full squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-4 text-sm font-medium" data-cursor-hover data-cursor-parallax disabled>
+						<button id="toggleCamera" class="w-full squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-4 text-sm font-medium" data-cursor-hover data-cursor-parallax>
 						Enable Camera
 						</button>
 						
@@ -430,10 +430,28 @@ const t = useTranslations(lang);
 
 		async init() {
 			console.log('Initializing TimeLapseRecorder...');
-			this.setupEventListeners();
-			this.loadRecordings(); // Load saved recordings
-			this.updateUI(); // Enable buttons initially
-			this.updateStatus('📷 Camera Ready - Click "Enable Camera" to start');
+			
+			// Add a small delay to ensure DOM is fully ready
+			setTimeout(() => {
+				this.setupEventListeners();
+				this.loadRecordings(); // Load saved recordings
+				this.updateUI(); // Enable buttons initially
+				this.updateStatus('📷 Camera Ready - Click "Enable Camera" to start');
+				
+				// Force enable camera button with multiple methods
+				if (this.toggleCameraBtn) {
+					this.toggleCameraBtn.disabled = false;
+					this.toggleCameraBtn.removeAttribute('disabled');
+					this.toggleCameraBtn.style.pointerEvents = 'auto';
+					this.toggleCameraBtn.style.opacity = '1';
+					console.log('Camera button forcefully enabled. Current state:', {
+						disabled: this.toggleCameraBtn.disabled,
+						hasDisabledAttr: this.toggleCameraBtn.hasAttribute('disabled'),
+						style: this.toggleCameraBtn.style.cssText,
+						classList: this.toggleCameraBtn.className
+					});
+				}
+			}, 100);
 		}
 
 		setupEventListeners() {
@@ -441,10 +459,29 @@ const t = useTranslations(lang);
 			
 			if (this.toggleCameraBtn) {
 				console.log('Adding click listener to toggleCamera button');
-				this.toggleCameraBtn.addEventListener('click', () => {
+				
+				// Remove any existing listeners
+				this.toggleCameraBtn.removeEventListener('click', this.handleToggleCamera);
+				
+				// Create bound method
+				this.handleToggleCamera = () => {
 					console.log('Toggle camera clicked');
 					this.toggleCamera();
-				});
+				};
+				
+				this.toggleCameraBtn.addEventListener('click', this.handleToggleCamera);
+				
+				// Also add a test click to verify it's working
+				console.log('Testing camera button click capability...');
+				setTimeout(() => {
+					const event = new Event('click');
+					console.log('Manual click test - button state:', {
+						disabled: this.toggleCameraBtn.disabled,
+						hasDisabledAttr: this.toggleCameraBtn.hasAttribute('disabled')
+					});
+				}, 500);
+			} else {
+				console.error('toggleCamera button not found!');
 			}
 
 			if (this.startBtn) {
