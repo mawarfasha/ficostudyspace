@@ -1333,7 +1333,22 @@ const t = useTranslations(lang);
 	document.addEventListener('DOMContentLoaded', () => {
 		console.log('DOM loaded, initializing...');
 		
-		// Initialize blob cursor first
+		// Fix camera button first
+		const toggleCameraBtn = document.getElementById('toggleCamera');
+		if (toggleCameraBtn) {
+			console.log('Camera button found, adding click listener...');
+			toggleCameraBtn.addEventListener('click', function() {
+				console.log('Camera button clicked!');
+				if (window.timeLapse) {
+					window.timeLapse.toggleCamera();
+				}
+			});
+			console.log('Camera button listener added successfully');
+		} else {
+			console.error('Camera button not found!');
+		}
+		
+		// Initialize blob cursor
 		try {
 			initBlobCursor();
 			console.log('BlobCursor initialized');
