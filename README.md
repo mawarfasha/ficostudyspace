@@ -1,4 +1,4 @@
-# Fico Study Space 🎯
+# Fico Study Space
 
 **TypeScript/JavaScript productivity web application with camera timelapse recording and focus timer for enhanced study accountability.**
 
@@ -9,50 +9,51 @@
 
 ---
 
-## 📖 About This Project
+## About This Project
 
 Fico Study Space is a modern productivity platform designed to help students and professionals maintain focus and accountability during study sessions. Born from observing the dedication and persistence of hardworking students, this project aims to bridge the gap between mobile timelapse tools and comprehensive study productivity features.
 
-### 💡 Personal Vision
+### Personal Vision
 
 > *"This project exists because of witnessing true dedication in action. Watching students struggle with the balance between using their phones for timelapse recording while needing them for study-related tasks sparked the idea for a unified solution. It's not just a tool—it's a tribute to the persistence and determination of every student working toward their goals."*
 
 The vision is to create a seamless digital study environment where accountability, focus, and productivity converge into a single, powerful web application.
 
+> **Note**: This is an ongoing project with continuous improvements and new features being added based on user feedback and evolving study productivity needs.
+
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🎥 **Timelapse Recording**
+### **Timelapse Recording**
 - **Camera Integration**: Direct browser camera access for study session recording
 - **Customizable Settings**: Adjustable capture intervals (0.1s - 5s) and playback speeds (5-60fps)
 - **Smart Storage**: Local storage with automatic cleanup of recordings older than 3 days
 - **Export Options**: Download timelapses as WebM video files
 - **Mirror Mode**: Horizontally flipped camera feed for natural self-viewing
 
-### ⏰ **Focus Timer (Pomodoro-style)**
+### **Focus Timer (Pomodoro-style)**
 - **Flexible Timing**: Preset options (25, 45, 90 minutes) with custom adjustments
 - **Session Controls**: Start, pause, stop, and reset functionality
 - **Progress Tracking**: Visual countdown with completion notifications
 - **Session Statistics**: Track completed sessions and total focus time
 - **Desktop Notifications**: Browser notifications for session completion
 
-### 📊 **Productivity Analytics**
+### **Productivity Analytics**
 - **Session Counter**: Track number of completed focus sessions
 - **Time Logging**: Monitor total focus time accumulated
 - **Streak Tracking**: Maintain and visualize study streaks
 - **Local Persistence**: All data stored locally for privacy
 
-### 🎨 **Modern User Experience**
+### **Modern User Experience**
 - **Responsive Design**: Optimized for desktop and tablet use
 - **Interactive Cursor**: Custom blob cursor with parallax effects
-- **Glassmorphism UI**: Modern frosted glass design elements
 - **Smooth Animations**: GSAP-powered transitions and interactions
 - **Accessibility**: Keyboard navigation and screen reader support
 
 ---
 
-## 🛠️ Technical Architecture
+## Technical Architecture
 
 ### **Core Technologies**
 - **[Astro](https://astro.build)** - Modern static site generator with component islands
@@ -76,7 +77,7 @@ The vision is to create a seamless digital study environment where accountabilit
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - **Node.js** 18+ or **Bun** 1.0+
@@ -115,7 +116,7 @@ bun run pwa:generate-assets    # Generate PWA icons
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 src/
@@ -141,7 +142,7 @@ src/
 
 ---
 
-## 🎯 Use Cases
+## Use Cases
 
 ### **For Students**
 - Record study sessions for self-accountability
@@ -163,7 +164,7 @@ src/
 
 ---
 
-## 🌐 Deployment
+## Deployment
 
 ### **Supported Platforms**
 - **[Vercel](https://vercel.com)** - Recommended for optimal performance
@@ -177,7 +178,7 @@ src/
 
 ---
 
-## � Privacy & Security
+## Privacy & Security
 
 - **Local Storage**: All user data stored locally in browser
 - **No Analytics**: No tracking or data collection implemented
@@ -187,7 +188,7 @@ src/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! This project is built with the student community in mind, and improvements that enhance the study experience are especially valued.
 
@@ -209,13 +210,13 @@ Contributions are welcome! This project is built with the student community in m
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 This project exists thanks to the inspiration drawn from dedicated students who demonstrate what true persistence and hard work look like. Their commitment to learning and growth serves as the foundation for every feature and design decision in Fico Study Space.
 
@@ -223,7 +224,7 @@ This project exists thanks to the inspiration drawn from dedicated students who 
 
 ---
 
-## 📞 Contact & Support
+## Contact & Support
 
 - **Website**: [ficostudyspace.com](https://ficostudyspace.com)
 - **Repository**: [github.com/mawarfasha/ficostudyspace](https://github.com/mawarfasha/ficostudyspace)
