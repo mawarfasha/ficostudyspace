@@ -224,7 +224,7 @@ const t = useTranslations(lang);
 				<h3 class="text-xl font-semibold mb-4 text-black text-center">Recent Time-lapses</h3>
 				<div id="recordingsList" class="space-y-4">
 					<p class="text-center text-black/60 py-8">
-						No recordings yet. Start your first time-lapse above!
+						No recordings yet. Start your first time-lapse!
 					</p>
 				</div>
 			</div>
@@ -430,6 +430,12 @@ const t = useTranslations(lang);
 
 		async init() {
 			console.log('Initializing TimeLapseRecorder...');
+			console.log('Environment check:', {
+				protocol: window.location.protocol,
+				hostname: window.location.hostname,
+				isSecureContext: window.isSecureContext,
+				hasGetUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+			});
 			
 			// Wait for DOM to be fully ready
 			const initializeComponents = () => {
@@ -538,11 +544,40 @@ const t = useTranslations(lang);
 		async toggleCamera() {
 			console.log('toggleCamera called, cameraEnabled:', this.cameraEnabled);
 			
+			// Check if we're in a secure context
+			if (!window.isSecureContext) {
+				console.error('Camera access requires HTTPS (secure context)');
+				this.updateStatus('❌ Camera requires HTTPS. Please access via https://');
+				if (this.cameraPlaceholder) {
+					this.cameraPlaceholder.innerHTML = '<div class="text-center"><p class="text-lg text-red-500">Camera access requires HTTPS<br>Please access via https://</p></div>';
+					this.cameraPlaceholder.style.display = 'flex';
+				}
+				return;
+			}
+
+			// Check if getUserMedia is supported
+			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+				console.error('getUserMedia not supported');
+				this.updateStatus('❌ Camera not supported in this browser');
+				if (this.cameraPlaceholder) {
+					this.cameraPlaceholder.innerHTML = '<div class="text-center"><p class="text-lg text-red-500">Camera not supported<br>Please use a modern browser</p></div>';
+					this.cameraPlaceholder.style.display = 'flex';
+				}
+				return;
+			}
+			
 			if (!this.cameraEnabled) {
 				try {
 					console.log('Requesting camera access...');
+					console.log('Current URL protocol:', window.location.protocol);
+					console.log('Is secure context:', window.isSecureContext);
+					
 					this.stream = await navigator.mediaDevices.getUserMedia({
-						video: { width: 1280, height: 720 },
+						video: { 
+							width: { ideal: 1280 }, 
+							height: { ideal: 720 },
+							facingMode: 'user'
+						},
 						audio: false
 					});
 					
@@ -568,7 +603,44 @@ const t = useTranslations(lang);
 					
 				} catch (error) {
 					console.error('Camera access error:', error);
-					this.updateStatus('❌ Camera access denied. Please allow camera permissions.');
+					console.error('Error name:', error.name);
+					console.error('Error message:', error.message);
+					
+					let errorMessage = '❌ Camera access failed: ';
+					let htmlMessage = '<div class="text-center"><p class="text-lg text-red-500">';
+					
+					switch (error.name) {
+						case 'NotAllowedError':
+							errorMessage += 'Permission denied. Please allow camera access.';
+							htmlMessage += 'Camera permission denied<br>Please click allow when prompted or check browser settings</p></div>';
+							break;
+						case 'NotFoundError':
+							errorMessage += 'No camera found on this device.';
+							htmlMessage += 'No camera found<br>Please connect a camera device</p></div>';
+							break;
+						case 'NotSupportedError':
+							errorMessage += 'Camera not supported in this browser.';
+							htmlMessage += 'Camera not supported<br>Please use Chrome, Firefox, or Safari</p></div>';
+							break;
+						case 'NotReadableError':
+							errorMessage += 'Camera is already in use by another application.';
+							htmlMessage += 'Camera in use<br>Please close other apps using the camera</p></div>';
+							break;
+						case 'SecurityError':
+							errorMessage += 'Security error. Please ensure you\'re using HTTPS.';
+							htmlMessage += 'Security error - HTTPS required<br>Please access via https://</p></div>';
+							break;
+						default:
+							errorMessage += error.message || 'Unknown error occurred.';
+							htmlMessage += `Camera error<br>${error.message || 'Please try again'}</p></div>`;
+							break;
+					}
+					
+					this.updateStatus(errorMessage);
+					if (this.cameraPlaceholder) {
+						this.cameraPlaceholder.innerHTML = htmlMessage;
+						this.cameraPlaceholder.style.display = 'flex';
+					}
 				}
 			} else {
 				console.log('Disabling camera...');
