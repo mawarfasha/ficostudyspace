@@ -778,6 +778,10 @@ const t = useTranslations(lang);
 					this.saveRecordings(); // Save to localStorage
 					this.updateRecordingsList();
 					this.updateStatus(`✨ Time-lapse created! ${this.frames.length} frames at ${fps}fps`);
+					
+					// Show completion popup with download option
+					this.showCompletionPopup(recording);
+					
 					resolve();
 				};
 
@@ -819,7 +823,23 @@ const t = useTranslations(lang);
 				return;
 			}
 
-			this.recordingsList.innerHTML = this.recordings.map(recording => {
+			// Check if we have any recordings from previous sessions
+			const hasPreviousSessionRecordings = this.recordings.some(r => r.fromPreviousSession);
+			
+			let clearButton = '';
+			if (hasPreviousSessionRecordings) {
+				clearButton = `
+					<div class="mb-4 text-center">
+						<button onclick="timeLapse.clearHistory()" 
+								class="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors">
+							🗑️ Clear Session History
+						</button>
+						<p class="text-xs text-black/60 mt-1">Remove recordings from previous sessions</p>
+					</div>
+				`;
+			}
+
+			const recordingsHtml = this.recordings.map(recording => {
 				const hasVideo = recording.url ? true : false;
 				const isExpired = recording.isExpired || false;
 				
@@ -851,7 +871,9 @@ const t = useTranslations(lang);
 
 				// Determine the status message
 				let statusMessage = '';
-				if (isExpired) {
+				if (recording.fromPreviousSession) {
+					statusMessage = '<br><span class="text-blue-600">📋 Recording info from previous session</span>';
+				} else if (isExpired) {
 					statusMessage = '<br><span class="text-red-600">⏰ Expired (older than 3 days)</span>';
 				} else if (!hasVideo) {
 					statusMessage = '<br><span class="text-orange-600">⚠️ Video not available (from previous session)</span>';
@@ -879,6 +901,8 @@ const t = useTranslations(lang);
 					</div>
 				`;
 			}).join('');
+
+			this.recordingsList.innerHTML = clearButton + recordingsHtml;
 		}
 
 		downloadRecording(id) {
@@ -1007,49 +1031,31 @@ const t = useTranslations(lang);
 					const recordingsData = JSON.parse(savedRecordings);
 					const now = new Date();
 					const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
-					
-					// Filter out recordings older than 3 days and mark recent ones as expired if needed
-					const activeRecordings = [];
+
+					// Only load recordings from current session that have actual video data
+					// Since blob URLs don't persist across sessions, we'll only show metadata
+					// for recordings from previous sessions as "expired" entries
+					const currentSessionRecordings = [];
 					const expiredRecordings = [];
 					
 					recordingsData.forEach(data => {
 						const timestamp = new Date(data.timestamp);
-						const isExpired = timestamp < threeDaysAgo;
-						
 						const recording = {
 							...data,
 							timestamp: timestamp,
 							url: null, // URL will be null for loaded recordings
 							blob: null, // Blob will be null for loaded recordings
-							isExpired: isExpired
+							isExpired: true, // Mark as expired since we can't play them
+							fromPreviousSession: true
 						};
-						
-						if (isExpired) {
-							expiredRecordings.push(recording);
-						} else {
-							activeRecordings.push(recording);
-						}
+						expiredRecordings.push(recording);
 					});
 					
-					// Keep active recordings and show some expired ones for reference
-					this.recordings = [...activeRecordings, ...expiredRecordings.slice(0, 3)]; // Show max 3 expired
-					
-					// If we removed any expired recordings, update localStorage
-					if (expiredRecordings.length > 0) {
-						const recordingsToSave = activeRecordings.map(recording => ({
-							id: recording.id,
-							timestamp: recording.timestamp.toISOString(),
-							frameCount: recording.frameCount,
-							fps: recording.fps,
-							duration: recording.duration
-						}));
-						localStorage.setItem('focusDesk_recordings', JSON.stringify(recordingsToSave));
-						console.log(`Cleaned up ${expiredRecordings.length} expired recordings`);
-					}
+					// Show up to 3 expired recordings for reference, but no current session ones
+					this.recordings = expiredRecordings.slice(0, 3);
 					
 					console.log('Loaded recordings from localStorage:', this.recordings.length);
-					console.log('Active recordings:', activeRecordings.length);
-					console.log('Showing expired recordings:', Math.min(expiredRecordings.length, 3));
+					console.log('All recordings marked as expired due to session change');
 					this.updateRecordingsList();
 				}
 			} catch (error) {
@@ -1064,8 +1070,167 @@ const t = useTranslations(lang);
 			this.updateUI();
 		}
 
+		clearHistory() {
+			// Remove all recordings from previous sessions
+			this.recordings = this.recordings.filter(r => !r.fromPreviousSession);
+			
+			// Clear localStorage completely and resave only current session recordings
+			localStorage.removeItem('focusDesk_recordings');
+			if (this.recordings.length > 0) {
+				this.saveRecordings();
+			}
+			
+			this.updateRecordingsList();
+			this.updateUI();
+			console.log('Recording history cleared');
+		}
+
 		updateStatus(message) {
 			console.log('Status:', message);
+		}
+
+		showCompletionPopup(recording) {
+			console.log('Showing completion popup for recording:', recording.id);
+			
+			// Create modal overlay
+			const modal = document.createElement('div');
+			modal.style.cssText = `
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0, 0, 0, 0.8);
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				z-index: 9999;
+				backdrop-filter: blur(8px);
+			`;
+
+			// Create popup content
+			const popup = document.createElement('div');
+			popup.style.cssText = `
+				background: white;
+				border-radius: 16px;
+				padding: 32px;
+				max-width: 400px;
+				width: 90%;
+				text-align: center;
+				box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+				transform: scale(0.8);
+				transition: transform 0.3s ease;
+			`;
+
+			popup.innerHTML = `
+				<div style="margin-bottom: 24px;">
+					<div style="width: 64px; height: 64px; background: #10b981; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white;">
+						🎉
+					</div>
+					<h2 style="margin: 0 0 8px 0; color: #111827; font-size: 24px; font-weight: bold;">
+						Time-lapse Complete!
+					</h2>
+					<p style="margin: 0; color: #6b7280; font-size: 16px;">
+						${recording.frameCount} frames • ${recording.fps}fps • ${recording.duration}s
+					</p>
+				</div>
+				
+				<div style="display: flex; gap: 12px; justify-content: center;">
+					<button id="download-popup-btn" style="
+						background: #3b82f6;
+						color: white;
+						border: none;
+						padding: 12px 24px;
+						border-radius: 8px;
+						font-size: 16px;
+						font-weight: 600;
+						cursor: pointer;
+						transition: all 0.2s ease;
+						display: flex;
+						align-items: center;
+						gap: 8px;
+					">
+						📥 Download
+					</button>
+					<button id="close-popup-btn" style="
+						background: #6b7280;
+						color: white;
+						border: none;
+						padding: 12px 24px;
+						border-radius: 8px;
+						font-size: 16px;
+						font-weight: 600;
+						cursor: pointer;
+						transition: all 0.2s ease;
+					">
+						Close
+					</button>
+				</div>
+			`;
+
+			// Add hover effects
+			const downloadBtn = popup.querySelector('#download-popup-btn');
+			const closeBtn = popup.querySelector('#close-popup-btn');
+			
+			downloadBtn.addEventListener('mouseenter', () => {
+				downloadBtn.style.background = '#2563eb';
+				downloadBtn.style.transform = 'translateY(-1px)';
+			});
+			
+			downloadBtn.addEventListener('mouseleave', () => {
+				downloadBtn.style.background = '#3b82f6';
+				downloadBtn.style.transform = 'translateY(0)';
+			});
+			
+			closeBtn.addEventListener('mouseenter', () => {
+				closeBtn.style.background = '#4b5563';
+			});
+			
+			closeBtn.addEventListener('mouseleave', () => {
+				closeBtn.style.background = '#6b7280';
+			});
+
+			// Add event listeners
+			downloadBtn.addEventListener('click', () => {
+				this.downloadRecording(recording.id);
+				modal.remove();
+			});
+
+			closeBtn.addEventListener('click', () => {
+				modal.remove();
+			});
+
+			// Close on backdrop click
+			modal.addEventListener('click', (e) => {
+				if (e.target === modal) {
+					modal.remove();
+				}
+			});
+
+			// Close on Escape key
+			const handleKeyPress = (e) => {
+				if (e.key === 'Escape') {
+					modal.remove();
+					document.removeEventListener('keydown', handleKeyPress);
+				}
+			};
+			document.addEventListener('keydown', handleKeyPress);
+
+			// Append to body and animate
+			modal.appendChild(popup);
+			document.body.appendChild(modal);
+
+			// Animate popup in
+			setTimeout(() => {
+				popup.style.transform = 'scale(1)';
+			}, 10);
+
+			// Auto-remove after 10 seconds if not interacted with
+			setTimeout(() => {
+				if (document.body.contains(modal)) {
+					modal.remove();
+				}
+			}, 10000);
 		}
 	}
 
