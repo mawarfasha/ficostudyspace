@@ -431,12 +431,13 @@ const t = useTranslations(lang);
 		async init() {
 			console.log('Initializing TimeLapseRecorder...');
 			
-			// Add a small delay to ensure DOM is fully ready
-			setTimeout(() => {
+			// Wait for DOM to be fully ready
+			const initializeComponents = () => {
+				console.log('DOM ready, setting up TimeLapse components...');
 				this.setupEventListeners();
 				this.loadRecordings(); // Load saved recordings
 				this.updateUI(); // Enable buttons initially
-				this.updateStatus('📷 Camera Ready - Click "Enable Camera" to start');
+				this.updateStatus('Camera Ready - Click "Enable Camera" to start');
 				
 				// Force enable camera button with multiple methods
 				if (this.toggleCameraBtn) {
@@ -444,14 +445,24 @@ const t = useTranslations(lang);
 					this.toggleCameraBtn.removeAttribute('disabled');
 					this.toggleCameraBtn.style.pointerEvents = 'auto';
 					this.toggleCameraBtn.style.opacity = '1';
+					this.toggleCameraBtn.style.cursor = 'pointer';
 					console.log('Camera button forcefully enabled. Current state:', {
 						disabled: this.toggleCameraBtn.disabled,
 						hasDisabledAttr: this.toggleCameraBtn.hasAttribute('disabled'),
 						style: this.toggleCameraBtn.style.cssText,
 						classList: this.toggleCameraBtn.className
 					});
+				} else {
+					console.error('toggleCamera button not found during initialization!');
 				}
-			}, 100);
+			};
+			
+			// Use a small delay to ensure DOM is ready
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', initializeComponents);
+			} else {
+				setTimeout(initializeComponents, 100);
+			}
 		}
 
 		setupEventListeners() {
@@ -460,28 +471,28 @@ const t = useTranslations(lang);
 			if (this.toggleCameraBtn) {
 				console.log('Adding click listener to toggleCamera button');
 				
-				// Remove any existing listeners
+				// Remove any existing listeners first
 				this.toggleCameraBtn.removeEventListener('click', this.handleToggleCamera);
 				
-				// Create bound method
-				this.handleToggleCamera = () => {
-					console.log('Toggle camera clicked');
+				// Create bound method to maintain context
+				this.handleToggleCamera = (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					console.log('Toggle camera clicked - event triggered');
 					this.toggleCamera();
 				};
 				
+				// Add the event listener
 				this.toggleCameraBtn.addEventListener('click', this.handleToggleCamera);
 				
-				// Also add a test click to verify it's working
-				console.log('Testing camera button click capability...');
-				setTimeout(() => {
-					const event = new Event('click');
-					console.log('Manual click test - button state:', {
-						disabled: this.toggleCameraBtn.disabled,
-						hasDisabledAttr: this.toggleCameraBtn.hasAttribute('disabled')
-					});
-				}, 500);
+				// Also try using mousedown as backup
+				this.toggleCameraBtn.addEventListener('mousedown', (e) => {
+					console.log('Camera button mousedown detected');
+				});
+				
+				console.log('Event listener attached successfully');
 			} else {
-				console.error('toggleCamera button not found!');
+				console.error('toggleCamera button not found during event listener setup!');
 			}
 
 			if (this.startBtn) {
@@ -1332,21 +1343,6 @@ const t = useTranslations(lang);
 	// Initialize when DOM is loaded
 	document.addEventListener('DOMContentLoaded', () => {
 		console.log('DOM loaded, initializing...');
-		
-		// Fix camera button first
-		const toggleCameraBtn = document.getElementById('toggleCamera');
-		if (toggleCameraBtn) {
-			console.log('Camera button found, adding click listener...');
-			toggleCameraBtn.addEventListener('click', function() {
-				console.log('Camera button clicked!');
-				if (window.timeLapse) {
-					window.timeLapse.toggleCamera();
-				}
-			});
-			console.log('Camera button listener added successfully');
-		} else {
-			console.error('Camera button not found!');
-		}
 		
 		// Initialize blob cursor
 		try {
