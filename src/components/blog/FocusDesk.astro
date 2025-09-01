@@ -49,7 +49,7 @@ const t = useTranslations(lang);
 					<!-- Compact Camera & Timelapse Controls -->
 					<div class="space-y-6 mb-3">
 						<!-- Camera Toggle -->
-						<button id="toggleCamera" class="w-full squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-4 text-sm font-medium" data-cursor-hover data-cursor-parallax>
+						<button id="toggleCamera" class="w-full squircle-bg rounded-lg bg-zinc-900 text-white transition-all hover:bg-slate-200 hover:text-black py-3 px-4 text-sm font-medium" data-cursor-hover data-cursor-parallax onclick="console.log('Camera button clicked directly!'); if(window.timeLapse) window.timeLapse.toggleCamera();">
 						Enable Camera
 						</button>
 						
@@ -436,6 +436,9 @@ const t = useTranslations(lang);
 				isSecureContext: window.isSecureContext,
 				hasGetUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
 			});
+			
+			// Add global reference for debugging
+			window.timeLapse = this;
 			
 			// Wait for DOM to be fully ready
 			const initializeComponents = () => {
@@ -1231,6 +1234,15 @@ const t = useTranslations(lang);
 					modal.remove();
 				}
 			}, 10000);
+		}
+
+		// Test function for debugging
+		testCamera() {
+			console.log('Testing camera access...');
+			console.log('Camera enabled state:', this.cameraEnabled);
+			console.log('Button element:', this.toggleCameraBtn);
+			console.log('Video element:', this.video);
+			this.toggleCamera();
 		}
 	}
 
